@@ -1,6 +1,7 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -27,9 +28,14 @@ public class Client extends ChatContext {
         //接受服务器消息
         reciveSocket(socket);
 
+        File file = new File("D:/1.txt");
+
+        //发送文件
+        sendFile(file,"people0",socket);
+
 //        sendMessageToOne(socket,"people0");
 
-        sendMessageToAll(socket);
+//        sendMessageToAll(socket);
 
     }
 
@@ -71,6 +77,8 @@ public class Client extends ChatContext {
                 request.setSocketType(ServerSocketType.CHAT_TO_ALL.getType());
                 String requestJson = JSON.toJSONString(request);
 
+
+
                 try {
                     sendMessage(requestJson,socket);
                 } catch (IOException e) {
@@ -111,6 +119,10 @@ public class Client extends ChatContext {
             handleGiveNameRequest(request);
         }
 
+        if(ClientSocketType.RECIVE_FILE.getType().equals(request.getSocketType())){
+            handReciveFile(request);
+        }
+
     }
 
     //处理服务器转发的客户端聊天请求
@@ -122,4 +134,6 @@ public class Client extends ChatContext {
     private void handleGiveNameRequest(Request request){
         name = request.getMessage();
     }
+
+
 }

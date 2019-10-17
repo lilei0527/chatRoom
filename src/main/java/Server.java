@@ -71,6 +71,10 @@ public class Server extends ChatContext {
         if (ServerSocketType.COLSE.getType().equals(request.getSocketType())) {
             handleCloseRequest(socket);
         }
+
+        if(ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())){
+            handleSendFile(request);
+        }
     }
 
     //处理群聊请求
@@ -115,6 +119,27 @@ public class Server extends ChatContext {
 
         String requestJson = JSONObject.toJSONString(request);
         sendMessage(requestJson, socket);
+    }
+
+    //发送文件
+    private void handleSendFile(Request request){
+        try {
+            for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
+                if (request.getName().equals(entry.getKey())) {
+                    //封装消息类型
+                    Request requestToClient = new Request();
+                    requestToClient.setBytes(request.getBytes());
+                    requestToClient.setSendName(request.getSendName());
+                    requestToClient.setSocketType(ClientSocketType.RECIVE_FILE.getType());
+                    requestToClient.setFileName(request.getFileName());
+
+                    String requestJson = JSONObject.toJSONString(requestToClient);
+                    sendMessage(requestJson, entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("IO异常");
+        }
     }
 
 }

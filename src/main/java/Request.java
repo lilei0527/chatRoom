@@ -7,9 +7,29 @@ class Request {
     private String message;
     //发送信息的人的名字
     private String sendName;
+    //发送的二进制流
+    private byte[] bytes;
+    //文件名
+    private String fileName;
 
     Request() {
 
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
+    }
+
+    public void setBytes(byte[] bytes) {
+        this.bytes = bytes;
     }
 
     public String getSocketType() {
