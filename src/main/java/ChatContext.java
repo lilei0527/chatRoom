@@ -69,14 +69,24 @@ public abstract class ChatContext {
     }
 
     //发送字符
-     void sendMessage(String message, Socket socket) throws IOException {
-        PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+    void sendMessage(String message, Socket socket) throws IOException {
+        OutputStream outputStream = socket.getOutputStream();
+        //首先发送4个字节的长度
+        int messageLength = message.length();
+        outputStream.write(messageLength);
+        //再发送实体内容
+        PrintWriter printWriter = new PrintWriter(outputStream);
         printWriter.println(message);
         printWriter.flush();
     }
 
     //接收字符
     String reciveMessage(Socket socket) throws IOException {
+        byte[] bytes = new byte[Request.PER_PACAGE_LENGTH];
+        //首先接收四个字节的内容，这个内容代表了实体的长度
+        InputStream inputStream = socket.getInputStream();
+        inputStream.read(bytes);
+        int dateLength = bytesToInt(bytes,0);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         return bufferedReader.readLine();
     }
@@ -95,7 +105,7 @@ public abstract class ChatContext {
     }
 
     //发送文件
-    public void sendFile(File file,String name,Socket socket) throws IOException {
+    public void sendFile(File file, String name, Socket socket) throws IOException {
         InputStream inputStream = new FileInputStream(file);
         inputStream.read(bytes);
         Request request = new Request();
@@ -104,7 +114,7 @@ public abstract class ChatContext {
         request.setName(name);
         request.setFileName(file.getName());
         String requestJson = JSONObject.toJSONString(request);
-        sendMessage(requestJson,socket);
+        sendMessage(requestJson, socket);
     }
 
     //接收文件
@@ -112,14 +122,23 @@ public abstract class ChatContext {
         byte[] bytes = request.getBytes();
         //写入文件
         File file = new File("D:/image");
-        if(!file.exists()){
+        if (!file.exists()) {
             file.mkdir();
         }
         String filename = request.getFileName();
-        File file1 = new File(file.getAbsoluteFile()+"/"+filename);
+        File file1 = new File(file.getAbsoluteFile() + "/" + filename);
         OutputStream outputStream = new FileOutputStream(file1);
         outputStream.write(bytes);
 
+    }
+
+    public static int bytesToInt(byte[] src, int offset) {
+        int value;
+        value = ((src[offset] & 0xFF)<<24)
+                |((src[offset+1] & 0xFF)<<16)
+                |((src[offset+2] & 0xFF)<<8)
+                |(src[offset+3] & 0xFF);
+        return value;
     }
 
 }
