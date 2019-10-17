@@ -15,7 +15,8 @@ class Request {
     public static int MAX_PACAGE_SIZE =  1000;
     //包的实际长度所占的字节数  单位个
     public static int PER_PACAGE_LENGTH = 4; //每次发送用四个字节来表示发送的包的字节长度
-
+    //一个包所能传输的最大数据长度
+    public static int MAX_INT_VALUE = 2147483647;
 
     Request() {
 

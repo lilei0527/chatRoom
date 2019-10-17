@@ -31,11 +31,11 @@ public class Client extends ChatContext {
         File file = new File("D:/1.txt");
 
         //发送文件
-        sendFile(file,"people0",socket);
+//        sendFile(file, "people0", socket);
 
-//        sendMessageToOne(socket,"people0");
+        sendMessageToOne(socket,"people1");
 
-//        sendMessageToAll(socket);
+        sendMessageToAll(socket);
 
     }
 
@@ -65,7 +65,7 @@ public class Client extends ChatContext {
     }
 
     //群聊发送消息
-    private void sendMessageToAll(Socket socket){
+    private void sendMessageToAll(Socket socket) {
         Runnable runnable1 = () -> {
             while (true) {
                 String message = getKeyboardEntry(socket.getRemoteSocketAddress().toString());
@@ -78,9 +78,8 @@ public class Client extends ChatContext {
                 String requestJson = JSON.toJSONString(request);
 
 
-
                 try {
-                    sendMessage(requestJson,socket);
+                    sendMessage(requestJson, socket);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
@@ -91,12 +90,11 @@ public class Client extends ChatContext {
     }
 
 
-
     //接受服务器请求
     private void reciveSocket(Socket socket) {
         Runnable runnable = () -> {
             while (true) {
-                String s;
+                String[] s;
                 try {
                     s = reciveMessage(socket);
                     handleServerRequest(s);
@@ -109,29 +107,31 @@ public class Client extends ChatContext {
     }
 
     //对不同的服务端消息做出不同的响应
-    private void handleServerRequest(String requestString) throws IOException {
-        Request request = JSON.parseObject(requestString, Request.class);
-        if (ClientSocketType.CHAT_WITH_CLIENT.getType().equals(request.getSocketType())) {
-            handleChatWithClientRequest(request);
-        }
+    private void handleServerRequest(String[] requestString) throws IOException {
+        for (String aRequestString : requestString) {
+            Request request = JSON.parseObject(aRequestString, Request.class);
+            if (ClientSocketType.CHAT_WITH_CLIENT.getType().equals(request.getSocketType())) {
+                handleChatWithClientRequest(request);
+            }
 
-        if (ClientSocketType.GIVE_NAME.getType().equals(request.getSocketType())) {
-            handleGiveNameRequest(request);
-        }
+            if (ClientSocketType.GIVE_NAME.getType().equals(request.getSocketType())) {
+                handleGiveNameRequest(request);
+            }
 
-        if(ClientSocketType.RECIVE_FILE.getType().equals(request.getSocketType())){
-            handReciveFile(request);
+            if (ClientSocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
+                handReciveFile(request);
+            }
         }
 
     }
 
     //处理服务器转发的客户端聊天请求
-    private void handleChatWithClientRequest(Request request){
+    private void handleChatWithClientRequest(Request request) {
         System.out.println(request.getSendName() + ":" + request.getMessage());
     }
 
     //接受服务器的命名
-    private void handleGiveNameRequest(Request request){
+    private void handleGiveNameRequest(Request request) {
         name = request.getMessage();
     }
 

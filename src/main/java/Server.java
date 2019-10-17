@@ -37,7 +37,7 @@ public class Server extends ChatContext {
         System.out.println(socket.getRemoteSocketAddress() + "已连接");
         String name = "people" + PEOPLESUM;
         stringSocketMap.put(name, socket);
-        sendNameToClient(name,socket);
+//        sendNameToClient(name,socket);
         reciveSocket(socket);
     }
 
@@ -45,7 +45,7 @@ public class Server extends ChatContext {
     private void reciveSocket(Socket socket) {
         Runnable runnable = () -> {
             while (true) {
-                String s;
+                String[] s;
                 try {
                     s = reciveMessage(socket);
                     handleClientRequest(s,socket);
@@ -58,22 +58,24 @@ public class Server extends ChatContext {
     }
 
     //对不同的客户端消息做出不同的响应
-    private void handleClientRequest(String requestString,Socket socket) throws IOException {
-        Request request = JSON.parseObject(requestString, Request.class);
-        if (ServerSocketType.CHAT_TO_ALL.getType().equals(request.getSocketType())) {
-            handleAllChatRequest(request);
-        }
+    private void handleClientRequest(String[] requestString,Socket socket) throws IOException {
+        for (String aRequestString : requestString) {
+            Request request = JSON.parseObject(aRequestString, Request.class);
+            if (ServerSocketType.CHAT_TO_ALL.getType().equals(request.getSocketType())) {
+                handleAllChatRequest(request);
+            }
 
-        if (ServerSocketType.CHAT_TO_ONE.getType().equals(request.getSocketType())) {
-            handleSingleChatRequest(request);
-        }
+            if (ServerSocketType.CHAT_TO_ONE.getType().equals(request.getSocketType())) {
+                handleSingleChatRequest(request);
+            }
 
-        if (ServerSocketType.COLSE.getType().equals(request.getSocketType())) {
-            handleCloseRequest(socket);
-        }
+            if (ServerSocketType.COLSE.getType().equals(request.getSocketType())) {
+                handleCloseRequest(socket);
+            }
 
-        if(ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())){
-            handleSendFile(request);
+            if (ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())) {
+                handleSendFile(request);
+            }
         }
     }
 

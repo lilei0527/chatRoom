@@ -71,9 +71,14 @@ public abstract class ChatContext {
     //发送字符
     void sendMessage(String message, Socket socket) throws IOException {
         OutputStream outputStream = socket.getOutputStream();
+        byte[] bytes;
         //首先发送4个字节的长度
         int messageLength = message.length();
-        outputStream.write(messageLength);
+//        if (messageLength <= Request.MAX_INT_VALUE) {
+        bytes = intToByteArray(messageLength);
+        outputStream.write(bytes);
+//        }
+
         //再发送实体内容
         PrintWriter printWriter = new PrintWriter(outputStream);
         printWriter.println(message);
@@ -81,14 +86,24 @@ public abstract class ChatContext {
     }
 
     //接收字符
-    String reciveMessage(Socket socket) throws IOException {
+    String[] reciveMessage(Socket socket) throws IOException {
+        String[] strings = new String[100];
+        int i = 0;
         byte[] bytes = new byte[Request.PER_PACAGE_LENGTH];
         //首先接收四个字节的内容，这个内容代表了实体的长度
         InputStream inputStream = socket.getInputStream();
-        inputStream.read(bytes);
-        int dateLength = bytesToInt(bytes,0);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        return bufferedReader.readLine();
+        while (inputStream.read(bytes) != -1) {
+            int dateLength = byteArrayToInt(bytes);
+            byte[] bytes1 = new byte[dateLength];
+            inputStream.read(bytes1);
+            strings[i] = new String(bytes1);
+            i++;
+        }
+        return strings;
+        //读取dateLength长度的内容
+
+//        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//        return bufferedReader.readLine();
     }
 
     //发送二进制流
@@ -132,13 +147,32 @@ public abstract class ChatContext {
 
     }
 
-    public static int bytesToInt(byte[] src, int offset) {
-        int value;
-        value = ((src[offset] & 0xFF)<<24)
-                |((src[offset+1] & 0xFF)<<16)
-                |((src[offset+2] & 0xFF)<<8)
-                |(src[offset+3] & 0xFF);
+    private static byte[] intToByteArray(int i) {
+        byte[] result = new byte[4];
+        // 由高位到低位
+        result[0] = (byte) ((i >> 24) & 0xFF);
+        result[1] = (byte) ((i >> 16) & 0xFF);
+        result[2] = (byte) ((i >> 8) & 0xFF);
+        result[3] = (byte) (i & 0xFF);
+        return result;
+    }
+
+    private static int byteArrayToInt(byte[] bytes) {
+        int value = 0;
+        // 由高位到低位
+        for (int i = 0; i < 4; i++) {
+            int shift = (4 - 1 - i) * 8;
+            value += (bytes[i] & 0x000000FF) << shift;// 往高位游
+        }
         return value;
     }
 
+    public static void main(String[] args) throws IOException {
+        byte[] bytes = new byte[4];
+        bytes[3] = 0B00000001;
+        bytes[0] = (byte) 0B10000000;
+//         bytes[1] = bytes[2] = bytes[3] = (byte) 0B11111111;
+        int i = byteArrayToInt(bytes);
+        System.out.println(i);
+    }
 }
