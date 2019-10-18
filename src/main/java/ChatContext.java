@@ -80,30 +80,30 @@ public abstract class ChatContext {
 //        }
 
         //再发送实体内容
-        PrintWriter printWriter = new PrintWriter(outputStream);
-        printWriter.println(message);
-        printWriter.flush();
+       byte[] messageBytes = message.getBytes();
+       outputStream.write(messageBytes);
     }
 
     //接收字符
     String[] reciveMessage(Socket socket) throws IOException {
-        String[] strings = new String[100];
+        System.out.println("接收消息");
+        String[] strings = new String[1000];
         int i = 0;
         byte[] bytes = new byte[Request.PER_PACAGE_LENGTH];
         //首先接收四个字节的内容，这个内容代表了实体的长度
         InputStream inputStream = socket.getInputStream();
+
         while (inputStream.read(bytes) != -1) {
             int dateLength = byteArrayToInt(bytes);
+            System.out.println("消息长度:"+dateLength);
             byte[] bytes1 = new byte[dateLength];
             inputStream.read(bytes1);
             strings[i] = new String(bytes1);
+            System.out.println(strings[i]);
             i++;
         }
+        System.out.println("消息提取结束，准备解析");
         return strings;
-        //读取dateLength长度的内容
-
-//        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//        return bufferedReader.readLine();
     }
 
     //发送二进制流

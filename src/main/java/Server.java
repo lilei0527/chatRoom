@@ -37,7 +37,7 @@ public class Server extends ChatContext {
         System.out.println(socket.getRemoteSocketAddress() + "已连接");
         String name = "people" + PEOPLESUM;
         stringSocketMap.put(name, socket);
-//        sendNameToClient(name,socket);
+        sendNameToClient(name,socket);
         reciveSocket(socket);
     }
 
@@ -62,6 +62,7 @@ public class Server extends ChatContext {
         for (String aRequestString : requestString) {
             Request request = JSON.parseObject(aRequestString, Request.class);
             if (ServerSocketType.CHAT_TO_ALL.getType().equals(request.getSocketType())) {
+                System.out.println("群聊");
                 handleAllChatRequest(request);
             }
 

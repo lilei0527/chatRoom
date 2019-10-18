@@ -28,7 +28,7 @@ public class Client extends ChatContext {
         //接受服务器消息
         reciveSocket(socket);
 
-        File file = new File("D:/1.txt");
+//        File file = new File("D:/1.txt");
 
         //发送文件
 //        sendFile(file, "people0", socket);
@@ -97,6 +97,7 @@ public class Client extends ChatContext {
                 String[] s;
                 try {
                     s = reciveMessage(socket);
+                    System.out.println(s);
                     handleServerRequest(s);
                 } catch (IOException e) {
                     return;
