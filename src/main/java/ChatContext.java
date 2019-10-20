@@ -13,7 +13,7 @@ public abstract class ChatContext {
     int PORT = 6666;
     String ADDRESS = "localhost";
     //发送文件时发送的缓冲区的字节大小
-    private byte[] bytes = new byte[1024];
+    private byte[] bytes = new byte[1024 * 8];
 
     //服务器接收的socket类型
     public enum ServerSocketType {
@@ -75,10 +75,8 @@ public abstract class ChatContext {
         //首先发送4个字节的长度
         int messageLength = getStringByteLength(message);
         System.out.println("发送的消息长度:" + messageLength);
-//        if (messageLength <= Request.MAX_INT_VALUE) {
         bytes = intToByteArray(messageLength);
         outputStream.write(bytes);
-//        }
         System.out.println("发送的消息:" + message);
         //再发送实体内容
         byte[] messageBytes = message.getBytes("GBK");
@@ -126,15 +124,30 @@ public abstract class ChatContext {
     //发送文件
     void sendFile(File file, String name, Socket socket) throws IOException {
         InputStream inputStream = new FileInputStream(file);
-        inputStream.read(bytes);
-        Request request = new Request();
-        request.setSocketType(ServerSocketType.SEND_FILE.getType());
-        request.setBytes(bytes);
-        request.setName(name);
-        request.setFileName(file.getName());
-        String requestJson = JSONObject.toJSONString(request);
-        System.out.println("发送的文件:" + requestJson);
-        sendMessage(requestJson, socket);
+        Runnable runnable1 = () -> {
+            try {
+                int c;
+                while ((c = inputStream.read(bytes)) != -1) {
+                    byte[] bytes1 = new byte[c];
+                    bytes1 = bytes;
+                    Request request = new Request();
+                    request.setSocketType(ServerSocketType.SEND_FILE.getType());
+                    request.setBytes(bytes1);
+                    request.setName(name);
+                    request.setFileName(file.getName());
+                    String requestJson = JSONObject.toJSONString(request);
+                    System.out.println("发送的文件:" + requestJson);
+                    try {
+                        sendMessage(requestJson, socket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
+        threadPool.submit(runnable1);
     }
 
     //接收文件
@@ -149,9 +162,26 @@ public abstract class ChatContext {
             }
         }
         String filename = request.getFileName();
-        File file1 = new File(file.getAbsoluteFile() + "/" + filename);
-        OutputStream outputStream = new FileOutputStream(file1);
-        outputStream.write(bytes);
+//        File file1 = new File(file.getAbsoluteFile() + "/" + filename);
+//        OutputStream outputStream = new FileOutputStream(file1);
+//        outputStream.write(bytes);
+
+        // 打开一个随机访问文件流，按读写方式
+
+        RandomAccessFile randomFile = new RandomAccessFile(file.getAbsoluteFile() + "/" + filename, "rw");
+
+        // 文件长度，字节数
+
+        long fileLength = randomFile.length();
+
+        //将写文件指针移到文件尾。在该位置发生下一个读取或写入操作。
+
+        randomFile.seek(fileLength);
+
+        //按字节序列将该字符串写入该文件。
+
+        randomFile.write(bytes);
+
     }
 
     private static byte[] intToByteArray(int i) {

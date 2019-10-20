@@ -142,6 +142,7 @@ public class Server extends ChatContext {
                     requestToClient.setFileName(request.getFileName());
 
                     String requestJson = JSONObject.toJSONString(requestToClient);
+                    System.out.println("发送的文件："+requestJson);
                     sendMessage(requestJson, entry.getValue());
                 }
             }

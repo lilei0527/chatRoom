@@ -28,14 +28,14 @@ public class Client extends ChatContext {
         //接受服务器消息
         reciveSocket(socket);
 
-        File file = new File("D:/1.txt");
+        File file = new File("D:/tiger.jpg");
 
         //发送文件
         sendFile(file, "people0", socket);
 
-        sendMessageToOne(socket,"people0");
-
-        sendMessageToAll(socket);
+//        sendMessageToOne(socket,"people0");
+//
+//        sendMessageToAll(socket);
 
     }
 
