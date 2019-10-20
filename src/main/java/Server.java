@@ -37,7 +37,7 @@ public class Server extends ChatContext {
         System.out.println(socket.getRemoteSocketAddress() + "已连接");
         String name = "people" + PEOPLESUM;
         stringSocketMap.put(name, socket);
-        sendNameToClient(name,socket);
+        sendNameToClient(name, socket);
         reciveSocket(socket);
     }
 
@@ -48,8 +48,9 @@ public class Server extends ChatContext {
                 String[] s;
                 try {
                     s = reciveMessage(socket);
-                    handleClientRequest(s,socket);
+                    handleClientRequest(s, socket);
                 } catch (IOException e) {
+                    System.out.println("IO异常");
                     return;
                 }
             }
@@ -58,9 +59,14 @@ public class Server extends ChatContext {
     }
 
     //对不同的客户端消息做出不同的响应
-    private void handleClientRequest(String[] requestString,Socket socket) throws IOException {
+    private void handleClientRequest(String[] requestString, Socket socket) throws IOException {
         for (String aRequestString : requestString) {
+            if (aRequestString == null) {
+                break;
+            }
+            System.out.println("提取的消息为:" + aRequestString);
             Request request = JSON.parseObject(aRequestString, Request.class);
+            System.out.println(request);
             if (ServerSocketType.CHAT_TO_ALL.getType().equals(request.getSocketType())) {
                 System.out.println("群聊");
                 handleAllChatRequest(request);
@@ -88,24 +94,23 @@ public class Server extends ChatContext {
 
     //处理私聊请求
     private void handleSingleChatRequest(Request request) {
-                try {
-                    for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
-                        if (request.getName().equals(entry.getKey())) {
-                            //封装消息类型
-                            Request requestToClient = new Request();
-                            requestToClient.setMessage(request.getMessage());
-                            requestToClient.setSendName(request.getSendName());
-                            requestToClient.setSocketType(ClientSocketType.CHAT_WITH_CLIENT.getType());
+        try {
+            for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
+                if (request.getName().equals(entry.getKey())) {
+                    //封装消息类型
+                    Request requestToClient = new Request();
+                    requestToClient.setMessage(request.getMessage());
+                    requestToClient.setSendName(request.getSendName());
+                    requestToClient.setSocketType(ClientSocketType.CHAT_WITH_CLIENT.getType());
 
-                            String requestJson = JSONObject.toJSONString(requestToClient);
-                            sendMessage(requestJson, entry.getValue());
-                        }
-                    }
-                } catch (IOException e) {
-                    System.out.println("IO异常");
+                    String requestJson = JSONObject.toJSONString(requestToClient);
+                    sendMessage(requestJson, entry.getValue());
                 }
+            }
+        } catch (IOException e) {
+            System.out.println("IO异常");
+        }
     }
-
 
 
     //客户端退出，处理关闭socket的请求
@@ -125,7 +130,7 @@ public class Server extends ChatContext {
     }
 
     //发送文件
-    private void handleSendFile(Request request){
+    private void handleSendFile(Request request) {
         try {
             for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
                 if (request.getName().equals(entry.getKey())) {

@@ -28,12 +28,12 @@ public class Client extends ChatContext {
         //接受服务器消息
         reciveSocket(socket);
 
-//        File file = new File("D:/1.txt");
+        File file = new File("D:/1.txt");
 
         //发送文件
-//        sendFile(file, "people0", socket);
+        sendFile(file, "people0", socket);
 
-        sendMessageToOne(socket,"people1");
+        sendMessageToOne(socket,"people0");
 
         sendMessageToAll(socket);
 
@@ -97,7 +97,6 @@ public class Client extends ChatContext {
                 String[] s;
                 try {
                     s = reciveMessage(socket);
-                    System.out.println(s);
                     handleServerRequest(s);
                 } catch (IOException e) {
                     return;
@@ -110,6 +109,10 @@ public class Client extends ChatContext {
     //对不同的服务端消息做出不同的响应
     private void handleServerRequest(String[] requestString) throws IOException {
         for (String aRequestString : requestString) {
+            if (aRequestString == null) {
+                break;
+            }
+            System.out.println("提取的消息为:"+aRequestString);
             Request request = JSON.parseObject(aRequestString, Request.class);
             if (ClientSocketType.CHAT_WITH_CLIENT.getType().equals(request.getSocketType())) {
                 handleChatWithClientRequest(request);

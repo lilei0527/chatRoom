@@ -13,7 +13,7 @@ public abstract class ChatContext {
     int PORT = 6666;
     String ADDRESS = "localhost";
     //发送文件时发送的缓冲区的字节大小
-    byte[] bytes = new byte[1024];
+    private byte[] bytes = new byte[1024];
 
     //服务器接收的socket类型
     public enum ServerSocketType {
@@ -69,19 +69,20 @@ public abstract class ChatContext {
     }
 
     //发送字符
-    void sendMessage(String message, Socket socket) throws IOException {
+    synchronized void sendMessage(String message, Socket socket) throws IOException {
         OutputStream outputStream = socket.getOutputStream();
         byte[] bytes;
         //首先发送4个字节的长度
-        int messageLength = message.length();
+        int messageLength = getStringByteLength(message);
+        System.out.println("发送的消息长度:" + messageLength);
 //        if (messageLength <= Request.MAX_INT_VALUE) {
         bytes = intToByteArray(messageLength);
         outputStream.write(bytes);
 //        }
-
+        System.out.println("发送的消息:" + message);
         //再发送实体内容
-       byte[] messageBytes = message.getBytes();
-       outputStream.write(messageBytes);
+        byte[] messageBytes = message.getBytes("GBK");
+        outputStream.write(messageBytes);
     }
 
     //接收字符
@@ -92,15 +93,18 @@ public abstract class ChatContext {
         byte[] bytes = new byte[Request.PER_PACAGE_LENGTH];
         //首先接收四个字节的内容，这个内容代表了实体的长度
         InputStream inputStream = socket.getInputStream();
-
-        while (inputStream.read(bytes) != -1) {
+        while ((inputStream.read(bytes)) != -1) {
             int dateLength = byteArrayToInt(bytes);
-            System.out.println("消息长度:"+dateLength);
-            byte[] bytes1 = new byte[dateLength];
-            inputStream.read(bytes1);
-            strings[i] = new String(bytes1);
-            System.out.println(strings[i]);
-            i++;
+            System.out.println("消息长度:" + dateLength);
+            byte[] dateDytes = new byte[dateLength];
+            if (inputStream.read(dateDytes) != -1) {
+                strings[i] = new String(dateDytes, "GBK");
+                System.out.println(strings[i]);
+                i++;
+            }
+            if (inputStream.available() == 0) {
+                break;
+            }
         }
         System.out.println("消息提取结束，准备解析");
         return strings;
@@ -120,7 +124,7 @@ public abstract class ChatContext {
     }
 
     //发送文件
-    public void sendFile(File file, String name, Socket socket) throws IOException {
+    void sendFile(File file, String name, Socket socket) throws IOException {
         InputStream inputStream = new FileInputStream(file);
         inputStream.read(bytes);
         Request request = new Request();
@@ -129,22 +133,25 @@ public abstract class ChatContext {
         request.setName(name);
         request.setFileName(file.getName());
         String requestJson = JSONObject.toJSONString(request);
+        System.out.println("发送的文件:" + requestJson);
         sendMessage(requestJson, socket);
     }
 
     //接收文件
-    public void handReciveFile(Request request) throws IOException {
+    void handReciveFile(Request request) throws IOException {
         byte[] bytes = request.getBytes();
         //写入文件
         File file = new File("D:/image");
         if (!file.exists()) {
-            file.mkdir();
+            if (!file.mkdir()) {
+                System.out.println("文件夹创建失败");
+                return;
+            }
         }
         String filename = request.getFileName();
         File file1 = new File(file.getAbsoluteFile() + "/" + filename);
         OutputStream outputStream = new FileOutputStream(file1);
         outputStream.write(bytes);
-
     }
 
     private static byte[] intToByteArray(int i) {
@@ -174,5 +181,18 @@ public abstract class ChatContext {
 //         bytes[1] = bytes[2] = bytes[3] = (byte) 0B11111111;
         int i = byteArrayToInt(bytes);
         System.out.println(i);
+    }
+
+    //获取字符串的字节长度
+    private int getStringByteLength(String str) {
+        int realLength = 0;
+        for (int i = 0; i < str.length(); i++) {
+            char charCode = str.charAt(i);
+            if (charCode <= 128)
+                realLength += 1;
+            else
+                realLength += 2;
+        }
+        return realLength;
     }
 }
