@@ -12,9 +12,6 @@ class Constant {
     //服务器端口
     static int PORT = 6666;
 
-    //一个socket接收到的事件序列的大小
-//    static int
-
     //服务器地址
     static String ADDRESS = "localhost";
 

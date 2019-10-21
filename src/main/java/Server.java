@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Server extends ChatContext {
@@ -46,10 +47,9 @@ public class Server extends ChatContext {
     private void reciveSocket(Socket socket) {
         Runnable runnable = () -> {
             while (true) {
-                String[] s;
                 try {
-                    s = reciveMessage(socket);
-                    handleClientRequest(s, socket);
+                    List<String> list = reciveMessage(socket);
+                    handleClientRequest(list, socket);
                 } catch (IOException e) {
                     System.out.println("IO异常");
                     return;
@@ -60,7 +60,7 @@ public class Server extends ChatContext {
     }
 
     //对不同的客户端消息做出不同的响应
-    private void handleClientRequest(String[] requestString, Socket socket) throws IOException {
+    private void handleClientRequest(List<String>requestString, Socket socket) throws IOException {
         for (String aRequestString : requestString) {
             if (aRequestString == null) {
                 break;

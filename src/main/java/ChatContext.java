@@ -3,6 +3,8 @@ import com.alibaba.fastjson.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,9 +34,10 @@ public abstract class ChatContext {
     }
 
     //接收字符
-    String[] reciveMessage(Socket socket) throws IOException {
-        int i = 0;
-        String[] strings = new String[10000];
+    List<String> reciveMessage(Socket socket) throws IOException {
+//        int i = 0;
+//        String[] strings = new String[10000];
+        List<String> list = new ArrayList<>();
         byte[] bytes = new byte[Constant.PER_PACAGE_LENGTH];
         //首先接收四个字节的内容，这个内容代表了实体的长度
         InputStream inputStream = socket.getInputStream();
@@ -42,13 +45,14 @@ public abstract class ChatContext {
             int dateLength = Util.byteArrayToInt(bytes);
             byte[] dateDytes = new byte[dateLength];
             if (inputStream.read(dateDytes) != -1) {
-                strings[i++] = new String(dateDytes, "GBK");
+                String s = new String(dateDytes, "GBK");
+                list.add(s);
             }
             if (inputStream.available() == 0) {
                 break;
             }
         }
-        return strings;
+        return list;
     }
 
 

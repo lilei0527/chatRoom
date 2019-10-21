@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
 
 public class Client extends ChatContext {
     //由服务器生成的客户端的名字
@@ -37,7 +38,7 @@ public class Client extends ChatContext {
 
 //        sendMessageToOne(socket,"people0");
 //
-        sendMessageToAll(socket);
+//        sendMessageToAll(socket);
 
     }
 
@@ -96,10 +97,9 @@ public class Client extends ChatContext {
     private void reciveSocket(Socket socket) {
         Runnable runnable = () -> {
             while (true) {
-                String[] s;
                 try {
-                    s = reciveMessage(socket);
-                    handleServerRequest(s);
+                    List list = reciveMessage(socket);
+                    handleServerRequest(list);
                 } catch (IOException e) {
                     return;
                 }
@@ -109,7 +109,7 @@ public class Client extends ChatContext {
     }
 
     //对不同的服务端消息做出不同的响应
-    private void handleServerRequest(String[] requestString) throws IOException {
+    private void handleServerRequest(List<String> requestString) throws IOException {
         for (String aRequestString : requestString) {
             if (aRequestString == null) {
                 break;
