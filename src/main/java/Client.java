@@ -19,24 +19,19 @@ public class Client extends ChatContext {
         init();
     }
 
-
     @Override
     public void init() throws IOException {
-
-
         Socket socket = new Socket(Constant.ADDRESS, Constant.PORT);
-
         //接受服务器消息
         reciveSocket(socket);
-
-        File file = new File("D:/1.jpeg");
-        File file1 = new File("D:/2.jpg");
-        File file2 = new File("D:/Git-2.21.0-64-bit.exe");
+//        File file = new File("D:/Git-2.21.0-64-bit.exe");
+//        File file1 = new File("D:/2.jpg");
+//        File file2 = new File("D:/Postman-win64-7.0.6-Setup.exe");
 //        发送文件
-        sendFile(file, "people0", socket);
-        sendFile(file2,"people0",socket);
+//        sendFile(file, "people0", socket);
+//        sendFile(file2,"people0",socket);
 
-//        sendMessageToOne(socket,"people0");
+        sendMessageToOne(socket,"people0");
 //
 //        sendMessageToAll(socket);
 
@@ -125,7 +120,7 @@ public class Client extends ChatContext {
             }
 
             if (Constant.ClientSocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
-                handReciveFile(request);
+                handleReciveFile(request);
             }
         }
 

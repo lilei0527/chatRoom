@@ -35,8 +35,6 @@ public abstract class ChatContext {
 
     //接收字符
     List<String> reciveMessage(Socket socket) throws IOException {
-//        int i = 0;
-//        String[] strings = new String[10000];
         List<String> list = new ArrayList<>();
         byte[] bytes = new byte[Constant.PER_PACAGE_LENGTH];
         //首先接收四个字节的内容，这个内容代表了实体的长度
@@ -48,6 +46,7 @@ public abstract class ChatContext {
                 String s = new String(dateDytes, "GBK");
                 list.add(s);
             }
+            //判断流是否到达末尾
             if (inputStream.available() == 0) {
                 break;
             }
@@ -97,7 +96,7 @@ public abstract class ChatContext {
     }
 
     //接收文件
-    void handReciveFile(Request request) throws IOException {
+    void handleReciveFile(Request request) throws IOException {
         byte[] bytes = request.getBytes();
         //写入文件
         File file = new File("D:/image");
