@@ -9,9 +9,10 @@ import java.util.Map;
 
 public class Server extends ChatContext {
 
-    private ServerSocket serverSocket = new ServerSocket(PORT);
+    private ServerSocket serverSocket = new ServerSocket(Constant.PORT);
 
     private Map<String, Socket> stringSocketMap = new HashMap<>();
+
     private int PEOPLESUM;
 
     private Server() throws IOException {
@@ -67,20 +68,20 @@ public class Server extends ChatContext {
             System.out.println("提取的消息为:" + aRequestString);
             Request request = JSON.parseObject(aRequestString, Request.class);
             System.out.println(request);
-            if (ServerSocketType.CHAT_TO_ALL.getType().equals(request.getSocketType())) {
+            if (Constant.ServerSocketType.CHAT_TO_ALL.getType().equals(request.getSocketType())) {
                 System.out.println("群聊");
                 handleAllChatRequest(request);
             }
 
-            if (ServerSocketType.CHAT_TO_ONE.getType().equals(request.getSocketType())) {
+            if (Constant.ServerSocketType.CHAT_TO_ONE.getType().equals(request.getSocketType())) {
                 handleSingleChatRequest(request);
             }
 
-            if (ServerSocketType.COLSE.getType().equals(request.getSocketType())) {
+            if (Constant.ServerSocketType.COLSE.getType().equals(request.getSocketType())) {
                 handleCloseRequest(socket);
             }
 
-            if (ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())) {
+            if (Constant.ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())) {
                 handleSendFile(request);
             }
         }
@@ -101,7 +102,7 @@ public class Server extends ChatContext {
                     Request requestToClient = new Request();
                     requestToClient.setMessage(request.getMessage());
                     requestToClient.setSendName(request.getSendName());
-                    requestToClient.setSocketType(ClientSocketType.CHAT_WITH_CLIENT.getType());
+                    requestToClient.setSocketType(Constant.ClientSocketType.CHAT_WITH_CLIENT.getType());
 
                     String requestJson = JSONObject.toJSONString(requestToClient);
                     sendMessage(requestJson, entry.getValue());
@@ -123,7 +124,7 @@ public class Server extends ChatContext {
         //封装消息类型
         Request request = new Request();
         request.setMessage(name);
-        request.setSocketType(ClientSocketType.GIVE_NAME.getType());
+        request.setSocketType(Constant.ClientSocketType.GIVE_NAME.getType());
 
         String requestJson = JSONObject.toJSONString(request);
         sendMessage(requestJson, socket);
@@ -138,11 +139,11 @@ public class Server extends ChatContext {
                     Request requestToClient = new Request();
                     requestToClient.setBytes(request.getBytes());
                     requestToClient.setSendName(request.getSendName());
-                    requestToClient.setSocketType(ClientSocketType.RECIVE_FILE.getType());
+                    requestToClient.setSocketType(Constant.ClientSocketType.RECIVE_FILE.getType());
                     requestToClient.setFileName(request.getFileName());
 
                     String requestJson = JSONObject.toJSONString(requestToClient);
-                    System.out.println("发送的文件："+requestJson);
+                    System.out.println("发送的文件：" + requestJson);
                     sendMessage(requestJson, entry.getValue());
                 }
             }
