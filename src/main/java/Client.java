@@ -24,14 +24,14 @@ public class Client extends ChatContext {
         Socket socket = new Socket(Constant.ADDRESS, Constant.PORT);
         //接受服务器消息
         reciveSocket(socket);
-//        File file = new File("D:/Git-2.21.0-64-bit.exe");
+        File file = new File("D:/tiger.jpg");
 //        File file1 = new File("D:/2.jpg");
 //        File file2 = new File("D:/Postman-win64-7.0.6-Setup.exe");
 //        发送文件
-//        sendFile(file, "people0", socket);
+//        sendFile(file, "people1", socket);
 //        sendFile(file2,"people0",socket);
 
-        sendMessageToOne(socket,"people0");
+//        sendMessageToOne(socket,"people1");
 //
 //        sendMessageToAll(socket);
 
@@ -93,8 +93,9 @@ public class Client extends ChatContext {
         Runnable runnable = () -> {
             while (true) {
                 try {
-                    List list = reciveMessage(socket);
+                    List<String> list = reciveMessage(socket);
                     handleServerRequest(list);
+                    System.out.println("处理请求数:"+list.size());
                 } catch (IOException e) {
                     return;
                 }

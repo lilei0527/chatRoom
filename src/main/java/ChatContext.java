@@ -67,8 +67,11 @@ public abstract class ChatContext {
         InputStream inputStream = new FileInputStream(file);
         Runnable runnable1 = () -> {
             try {
+                int c;
+                int i=0;
                 byte[] bytes = new byte[Constant.FILE_BUFFER_SIZE];
-                while (inputStream.read(bytes) != -1) {
+                while ((c=inputStream.read(bytes)) != -1) {
+                    bytes =Util.shortByteArray(bytes,c);
                     Request request = new Request();
                     request.setSocketType(Constant.ServerSocketType.SEND_FILE.getType());
                     request.setBytes(bytes);
@@ -78,10 +81,12 @@ public abstract class ChatContext {
                     System.out.println("发送的文件:" + requestJson);
                     try {
                         sendMessage(requestJson, socket);
+                        i++;
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
+                System.out.println("处理的请求数:"+i);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

@@ -70,7 +70,6 @@ public class Server extends ChatContext {
             }
             System.out.println("提取的消息为:" + aRequestString);
             Request request = JSON.parseObject(aRequestString, Request.class);
-            System.out.println(request);
             if (Constant.ServerSocketType.CHAT_TO_ALL.getType().equals(request.getSocketType())) {
                 System.out.println("群聊");
                 handleAllChatRequest(request);
@@ -105,36 +104,7 @@ public class Server extends ChatContext {
             requestToClient.setSendName(request.getSendName());
             requestToClient.setSocketType(Constant.ClientSocketType.CHAT_WITH_CLIENT.getType());
             String requestJson = JSONObject.toJSONString(requestToClient);
-            for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
-                if (request.getName().equals(entry.getKey())) {
-                    sendMessage(requestJson, entry.getValue());
-                    break;
-                } else {
-                    List<String> messageList = new ArrayList<>();
-                    messageList.add(requestJson);
-                    //存储离线消息
-                    if (offLineMessageMap.isEmpty()) {
-                        offLineMessageMap.put(request.getName(), messageList);
-                        System.out.println(offLineMessageMap.toString());
-                    } else {
-                        //用来标识离线消息map中是否有本次消息接受者的信息
-                        boolean hasMessage = false;
-                        for (Map.Entry<String, List<String>> offLineMessageEntry : offLineMessageMap.entrySet()) {
-                            //如果离线消息的map中已经有该未上线人的消息，则将消息添加到消息集合
-                            if (offLineMessageEntry.getKey().equals(entry.getKey())) {
-                                List<String> messageListExist = offLineMessageEntry.getValue();
-                                messageListExist.addAll(messageList);
-                                offLineMessageEntry.setValue(messageListExist);
-                                hasMessage = true;
-                                break;
-                            }
-                        }
-                        if (!hasMessage) {
-                            offLineMessageMap.put(request.getName(), messageList);
-                        }
-                    }
-                }
-            }
+            handleMessage(requestJson, request.getName());
         } catch (IOException e) {
             System.out.println("IO异常");
         }
@@ -152,31 +122,20 @@ public class Server extends ChatContext {
         Request request = new Request();
         request.setMessage(name);
         request.setSocketType(Constant.ClientSocketType.GIVE_NAME.getType());
-
         String requestJson = JSONObject.toJSONString(request);
         sendMessage(requestJson, socket);
     }
 
     //发送文件
-    private void handleSendFile(Request request) {
-        try {
-            for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
-                if (request.getName().equals(entry.getKey())) {
-                    //封装消息类型
-                    Request requestToClient = new Request();
-                    requestToClient.setBytes(request.getBytes());
-                    requestToClient.setSendName(request.getSendName());
-                    requestToClient.setSocketType(Constant.ClientSocketType.RECIVE_FILE.getType());
-                    requestToClient.setFileName(request.getFileName());
-
-                    String requestJson = JSONObject.toJSONString(requestToClient);
-                    System.out.println("发送的文件：" + requestJson);
-                    sendMessage(requestJson, entry.getValue());
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("IO异常");
-        }
+    private void handleSendFile(Request request) throws IOException {
+        //封装消息类型
+        Request requestToClient = new Request();
+        requestToClient.setBytes(request.getBytes());
+        requestToClient.setSendName(request.getSendName());
+        requestToClient.setSocketType(Constant.ClientSocketType.RECIVE_FILE.getType());
+        requestToClient.setFileName(request.getFileName());
+        String requestJson = JSONObject.toJSONString(requestToClient);
+        handleMessage(requestJson,request.getName());
     }
 
     //给离线的人发送消息
@@ -188,13 +147,13 @@ public class Server extends ChatContext {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                System.out.println(offLineMessageMap.toString() + stringSocketMap.toString());
+//                System.out.println(offLineMessageMap.toString() + stringSocketMap.toString());
                 for (Map.Entry<String, List<String>> offLineMessageEntry : offLineMessageMap.entrySet()) {
                     for (Map.Entry<String, Socket> stringSocketEntry : stringSocketMap.entrySet()) {
                         if (offLineMessageEntry.getKey().equals(stringSocketEntry.getKey())) {
+                            System.out.println(offLineMessageEntry.getValue().size());
                             for (String message : offLineMessageEntry.getValue()) {
                                 try {
-                                    System.out.println(offLineMessageEntry.getKey() + "上线");
                                     sendMessage(message, stringSocketEntry.getValue());
                                 } catch (IOException e) {
                                     System.out.println("io exception");
@@ -208,5 +167,38 @@ public class Server extends ChatContext {
             }
         };
         threadPool.submit(runnable);
+    }
+
+    //将离线消息（文件或文字）添加到map，name是接收人的名字
+    private void handleMessage(String message, String name) throws IOException {
+        for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
+            if (name.equals(entry.getKey())) {
+                sendMessage(message, entry.getValue());
+                break;
+            } else {
+                List<String> messageList = new ArrayList<>();
+                messageList.add(message);
+                //存储离线消息
+                if (offLineMessageMap.isEmpty()) {
+                    offLineMessageMap.put(name, messageList);
+                } else {
+                    //用来标识离线消息map中是否有本次消息接受者的信息
+                    boolean hasMessage = false;
+                    for (Map.Entry<String, List<String>> offLineMessageEntry : offLineMessageMap.entrySet()) {
+                        //如果离线消息的map中已经有该未上线人的消息，则将消息添加到消息集合
+                        if (offLineMessageEntry.getKey().equals(name)) {
+                            List<String> messageListExist = offLineMessageEntry.getValue();
+                            messageListExist.addAll(messageList);
+                            offLineMessageEntry.setValue(messageListExist);
+                            hasMessage = true;
+                            break;
+                        }
+                    }
+                    if (!hasMessage) {
+                        offLineMessageMap.put(name, messageList);
+                    }
+                }
+            }
+        }
     }
 }

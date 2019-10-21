@@ -39,4 +39,14 @@ class Util {
         }
         return realLength;
     }
+
+    //将bytes数组缩小为指定大小的数组
+    static byte[] shortByteArray(byte[] bytes,int length){
+        if(bytes.length<length){
+            throw new IllegalArgumentException();
+        }
+        byte[] newBytes = new byte[length];
+        System.arraycopy(bytes, 0, newBytes, 0, length);
+        return newBytes;
+    }
 }
