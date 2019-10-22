@@ -120,5 +120,6 @@ public abstract class ChatContext {
         randomFile.seek(fileLength);
         //按字节序列将该字符串写入该文件。
         randomFile.write(bytes);
+        randomFile.close();
     }
 }
