@@ -63,7 +63,7 @@ public abstract class ChatContext {
     }
 
     //发送文件
-    void sendFile(File file, String name, Socket socket) throws IOException {
+    void sendFile(File file, String name, Socket socket,String socketType) throws IOException {
         InputStream inputStream = new FileInputStream(file);
         Runnable runnable1 = () -> {
             try {
@@ -73,7 +73,7 @@ public abstract class ChatContext {
                 while ((c=inputStream.read(bytes)) != -1) {
                     byte[] newBytes =Util.shortByteArray(bytes,c);
                     Request request = new Request();
-                    request.setSocketType(Constant.ServerSocketType.SEND_FILE.getType());
+                    request.setSocketType(socketType);
                     request.setBytes(newBytes);
                     request.setName(name);
                     request.setFileName(file.getName());
@@ -101,10 +101,10 @@ public abstract class ChatContext {
     }
 
     //接收文件
-    void handleReciveFile(Request request) throws IOException {
+    void handleReciveFile(Request request,String savePosition) throws IOException {
         byte[] bytes = request.getBytes();
         //写入文件
-        File file = new File("D:/image");
+        File file = new File(savePosition);
         if (!file.exists()) {
             if (!file.mkdir()) {
                 System.out.println("文件夹创建失败");

@@ -25,12 +25,12 @@ public class Client extends ChatContext {
         //接受服务器消息
         reciveSocket(socket);
         File file = new File("D:/Postman-win64-7.0.6-Setup.exe");
-//        File file1 = new File("D:/2.jpg");
+        File file1 = new File("D:/2.jpg");
 //        File file2 = new File("D:/Postman-win64-7.0.6-Setup.exe");
 //        发送文件
-//        sendFile(file, "people1", socket);
+        sendFile(file, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
+        sendFile(file1, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
 //        sendFile(file2,"people0",socket);
-
 //        sendMessageToOne(socket,"people1");
 //
 //        sendMessageToAll(socket);
@@ -48,7 +48,7 @@ public class Client extends ChatContext {
                 request.setMessage(message);
                 request.setName(sendToname);
                 request.setSendName(name);
-                request.setSocketType(Constant.ServerSocketType.CHAT_TO_ONE.getType());
+                request.setSocketType(ServerConstant.ServerSocketType.CHAT_TO_ONE.getType());
                 String requestJson = JSONObject.toJSONString(request);
 
                 try {
@@ -72,7 +72,7 @@ public class Client extends ChatContext {
                 Request request = new Request();
                 request.setMessage(message);
                 request.setSendName(name);
-                request.setSocketType(Constant.ServerSocketType.CHAT_TO_ALL.getType());
+                request.setSocketType(ServerConstant.ServerSocketType.CHAT_TO_ALL.getType());
                 String requestJson = JSON.toJSONString(request);
 
 
@@ -112,16 +112,16 @@ public class Client extends ChatContext {
             }
             System.out.println("提取的消息为:"+aRequestString);
             Request request = JSON.parseObject(aRequestString, Request.class);
-            if (Constant.ClientSocketType.CHAT_WITH_CLIENT.getType().equals(request.getSocketType())) {
+            if (ClientConstant.ClientSocketType.CHAT_WITH_CLIENT.getType().equals(request.getSocketType())) {
                 handleChatWithClientRequest(request);
             }
 
-            if (Constant.ClientSocketType.GIVE_NAME.getType().equals(request.getSocketType())) {
+            if (ClientConstant.ClientSocketType.GIVE_NAME.getType().equals(request.getSocketType())) {
                 handleGiveNameRequest(request);
             }
 
-            if (Constant.ClientSocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
-                handleReciveFile(request);
+            if (ClientConstant.ClientSocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
+                handleReciveFile(request,ClientConstant.FILE_SAVE_PALCE);
             }
         }
 

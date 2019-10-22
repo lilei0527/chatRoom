@@ -1,3 +1,5 @@
+import java.util.Date;
+
 /**
  * @author lilei
  * create at 2019/10/21 13:44
@@ -41,12 +43,24 @@ class Util {
     }
 
     //将bytes数组缩小为指定大小的数组
-    static byte[] shortByteArray(byte[] bytes,int length){
-        if(bytes.length<length){
+    static byte[] shortByteArray(byte[] bytes, int length) {
+        if (bytes.length < length) {
             throw new IllegalArgumentException();
         }
         byte[] newBytes = new byte[length];
         System.arraycopy(bytes, 0, newBytes, 0, length);
         return newBytes;
+    }
+
+    //取得文件的过期时间
+    static Date getFileExpireTime() {
+        long currentTime = System.currentTimeMillis() + ServerConstant.FILE_EXPIRE_TIME;
+        return new Date(currentTime);
+    }
+
+    //判断文件是否过期
+    static Boolean isFileExpire(Date expireDate){
+        Date now = new Date();
+        return now.after(expireDate);
     }
 }

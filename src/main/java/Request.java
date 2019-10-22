@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 class Request {
     //请求的类型
      private String socketType;
@@ -63,5 +65,17 @@ class Request {
 
     public void setSendName(String sendName) {
         this.sendName = sendName;
+    }
+
+    @Override
+    public String toString() {
+        return "Request{" +
+                "socketType='" + socketType + '\'' +
+                ", name='" + name + '\'' +
+                ", message='" + message + '\'' +
+                ", sendName='" + sendName + '\'' +
+                ", bytes=" + Arrays.toString(bytes) +
+                ", fileName='" + fileName + '\'' +
+                '}';
     }
 }
