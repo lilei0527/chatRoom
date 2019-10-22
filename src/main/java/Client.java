@@ -24,7 +24,7 @@ public class Client extends ChatContext {
         Socket socket = new Socket(Constant.ADDRESS, Constant.PORT);
         //接受服务器消息
         reciveSocket(socket);
-        File file = new File("D:/tiger.jpg");
+        File file = new File("D:/Postman-win64-7.0.6-Setup.exe");
 //        File file1 = new File("D:/2.jpg");
 //        File file2 = new File("D:/Postman-win64-7.0.6-Setup.exe");
 //        发送文件

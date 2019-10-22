@@ -71,10 +71,10 @@ public abstract class ChatContext {
                 int i=0;
                 byte[] bytes = new byte[Constant.FILE_BUFFER_SIZE];
                 while ((c=inputStream.read(bytes)) != -1) {
-                    bytes =Util.shortByteArray(bytes,c);
+                    byte[] newBytes =Util.shortByteArray(bytes,c);
                     Request request = new Request();
                     request.setSocketType(Constant.ServerSocketType.SEND_FILE.getType());
-                    request.setBytes(bytes);
+                    request.setBytes(newBytes);
                     request.setName(name);
                     request.setFileName(file.getName());
                     String requestJson = JSONObject.toJSONString(request);

@@ -15,6 +15,9 @@ class Constant {
     //服务器地址
     static String ADDRESS = "localhost";
 
+    //文件的过期时间(单位分钟)
+    static int FILE_EXPIRE_TIME = 10;
+
     //服务器接收的socket类型
     public enum ServerSocketType {
         //关闭socket

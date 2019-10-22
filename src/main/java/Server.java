@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Server extends ChatContext {
 
@@ -135,19 +132,14 @@ public class Server extends ChatContext {
         requestToClient.setSocketType(Constant.ClientSocketType.RECIVE_FILE.getType());
         requestToClient.setFileName(request.getFileName());
         String requestJson = JSONObject.toJSONString(requestToClient);
-        handleMessage(requestJson,request.getName());
+        handleMessage(requestJson, request.getName());
     }
 
     //给离线的人发送消息
     private void sendMessageToOffline() {
-        Runnable runnable = () -> {
-            while (true) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-//                System.out.println(offLineMessageMap.toString() + stringSocketMap.toString());
+        TimerTask task = new TimerTask() { //创建一个新的timer task
+            public void run() { //定时器任务执行的操作
+                System.out.println(new Date());
                 for (Map.Entry<String, List<String>> offLineMessageEntry : offLineMessageMap.entrySet()) {
                     for (Map.Entry<String, Socket> stringSocketEntry : stringSocketMap.entrySet()) {
                         if (offLineMessageEntry.getKey().equals(stringSocketEntry.getKey())) {
@@ -166,8 +158,12 @@ public class Server extends ChatContext {
                 }
             }
         };
-        threadPool.submit(runnable);
+        Timer timer = new Timer();//创建一个定时器
+        long delay = 0;
+        long PeriodTime = 1000;
+        timer.scheduleAtFixedRate(task, delay, PeriodTime);
     }
+
 
     //将离线消息（文件或文字）添加到map，name是接收人的名字
     private void handleMessage(String message, String name) throws IOException {
