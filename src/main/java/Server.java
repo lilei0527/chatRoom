@@ -88,6 +88,26 @@ public class Server extends ChatContext {
             if (ServerConstant.ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())) {
                 handleSendFile(request);
             }
+
+//            if (Constant.SocketType.RECIVE_FILE_TOTOL_LENGTH_AND_FILE_NAME.getType().equals(request.getSocketType())) {
+//                handleReciveFile(request,ServerConstant.TEMP_FILE_SAVE_PALCE,ServerConstant.Save);
+//            }
+        }
+    }
+
+
+    //处理文件总长和文件名的转发请求
+    private void handleFileTotalLengthAndFileNameRequest(Request request) throws IOException {
+        Request request1 = new Request();
+        request1.setTotalFileLength(request.getTotalFileLength());
+        request1.setFileName(request.getFileName());
+        request1.setSocketType(Constant.SocketType.RECIVE_FILE_TOTOL_LENGTH_AND_FILE_NAME.getType());
+        request1.setSendName(request.getSendName());
+        String requestJson = JSON.toJSONString(request1);
+        boolean isOnline = sendRequestToOnline(request.getName(),requestJson);
+
+        if(!isOnline){
+            //用户没上线，服务端生成临时文件
         }
     }
 
@@ -134,7 +154,7 @@ public class Server extends ChatContext {
         Request requestToClient = new Request();
         requestToClient.setBytes(request.getBytes());
         requestToClient.setSendName(request.getSendName());
-        requestToClient.setSocketType(ClientConstant.ClientSocketType.RECIVE_FILE.getType());
+        requestToClient.setSocketType(Constant.SocketType.RECIVE_FILE.getType());
         requestToClient.setFileName(request.getFileName());
         requestToClient.setName(request.getName());
         handleFile(requestToClient);
@@ -180,7 +200,7 @@ public class Server extends ChatContext {
                                 try {
                                     File file = new File(ServerConstant.OFFLINE_FILE_SAVE_PALCE + "/" + fileEntry.getKey());
                                     if (!Util.isFileExpire(fileEntry.getValue())) {
-                                        sendFile(file, "", stringSocketEntry.getValue(), ClientConstant.ClientSocketType.RECIVE_FILE.getType());
+                                        sendFile(file, "", stringSocketEntry.getValue(), Constant.SocketType.RECIVE_FILE.getType());
                                     } else {
                                         System.out.println("文件已过期");
                                     }
@@ -201,17 +221,23 @@ public class Server extends ChatContext {
         timer.scheduleAtFixedRate(task, delay, PeriodTime);
     }
 
-    //将离线文字消息添加到map，name是接收人的名字
-    private void handleMessage(String message, String name) throws IOException {
+    //给在线的人发送消息 name发送的人的名称
+    private boolean sendRequestToOnline(String name,String requestString) throws IOException {
         boolean isOnline = false;
         for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
             if (name.equals(entry.getKey())) {
                 //用户在线直接发送消息
-                sendMessage(message, entry.getValue());
+                sendMessage(requestString, entry.getValue());
                 isOnline = true;
                 break;
             }
         }
+        return isOnline;
+    }
+
+    //将离线文字消息添加到map，name是接收人的名字
+    private void handleMessage(String message, String name) throws IOException {
+        boolean isOnline = sendRequestToOnline(name,message);
         //如果用户不在线
         if (!isOnline) {
             List<String> messageList = new ArrayList<>();
@@ -246,21 +272,12 @@ public class Server extends ChatContext {
         System.out.println("消息：" + request.toString());
         String name = request.getName();
         String message = JSON.toJSONString(request);
-        boolean isOnline = false;
-        for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
-            if (name.equals(entry.getKey())) {
-                System.out.println("用户在线，发送文件");
-                //用户在线直接发送文件
-                sendMessage(message, entry.getValue());
-                isOnline = true;
-                break;
-            }
-        }
+        boolean isOnline = sendRequestToOnline(name,message);
         System.out.println(isOnline);
         if (!isOnline) {
             System.out.println("用户离线，保存文件");
             //保存离线文件
-            handleReciveFile(request, ServerConstant.OFFLINE_FILE_SAVE_PALCE);
+            handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE,ServerConstant.OFFLINE_FILE_SAVE_PALCE);
             //已存在的离线文件
             Map<String, Date> exsitFileMap = offLineFileMap.get(name);
             //将文件名添加到map

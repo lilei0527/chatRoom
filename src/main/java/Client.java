@@ -94,7 +94,7 @@ public class Client extends ChatContext {
             while (true) {
                 try {
                     List<String> list = reciveMessage(socket);
-                    handleServerRequest(list);
+                    handleServerRequest(list,socket);
                     System.out.println("处理请求数:"+list.size());
                 } catch (IOException e) {
                     return;
@@ -105,7 +105,7 @@ public class Client extends ChatContext {
     }
 
     //对不同的服务端消息做出不同的响应
-    private void handleServerRequest(List<String> requestString) throws IOException {
+    private void handleServerRequest(List<String> requestString,Socket socket) throws IOException {
         for (String aRequestString : requestString) {
             if (aRequestString == null) {
                 break;
@@ -120,9 +120,15 @@ public class Client extends ChatContext {
                 handleGiveNameRequest(request);
             }
 
-            if (ClientConstant.ClientSocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
-                handleReciveFile(request,ClientConstant.FILE_SAVE_PALCE);
+            if (Constant.SocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
+                handleReciveFile(request,ClientConstant.TEMP_FILE_SAVE_PALCE,ClientConstant.FILE_SAVE_PALCE,socket);
             }
+
+            if(Constant.SocketType.RECIVE_SENDED_FILE_LENGTH.getType().equals(request.getSocketType())){
+                reciveAndSendRandomFile();
+            }
+
+
         }
 
     }

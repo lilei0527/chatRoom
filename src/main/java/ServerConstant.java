@@ -17,6 +17,10 @@ class ServerConstant {
     //离线文件的存储位置
     static String OFFLINE_FILE_SAVE_PALCE = "D:/offlinefile";
 
+    //临时文件的保存位置
+    static String TEMP_FILE_SAVE_PALCE = "D:/servertempfile";
+
+
     //服务器接收的socket类型
     public enum ServerSocketType {
         //关闭socket
@@ -29,10 +33,8 @@ class ServerConstant {
         CHAT_TO_ALL("chatToAll"),
 
         //发送文件
-        SEND_FILE("sendFile"),
+        SEND_FILE("sendFile");
 
-        //接收文件
-        RECIVE_FILE("reciveFile");
 
         private final String Type;
 

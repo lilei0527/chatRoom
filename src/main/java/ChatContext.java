@@ -1,4 +1,5 @@
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
 import java.io.*;
@@ -62,16 +63,26 @@ public abstract class ChatContext {
         return sc.nextLine();
     }
 
+    //发送文件总长和文件名
+    void sendFileTotalLengthAndFileName(File file,Socket socket) throws IOException {
+        Request request = new Request();
+        request.setSocketType(Constant.SocketType.RECIVE_FILE_TOTOL_LENGTH_AND_FILE_NAME.getType());
+        request.setFileName(file.getName());
+        request.setTotalFileLength(file.length());
+        String requestJson = JSONObject.toJSONString(request);
+        sendMessage(requestJson,socket);
+    }
+
     //发送文件
-    void sendFile(File file, String name, Socket socket,String socketType) throws IOException {
+    void sendFile(File file, String name, Socket socket, String socketType) throws IOException {
         InputStream inputStream = new FileInputStream(file);
         Runnable runnable1 = () -> {
             try {
                 int c;
-                int i=0;
+                int i = 0;
                 byte[] bytes = new byte[Constant.FILE_BUFFER_SIZE];
-                while ((c=inputStream.read(bytes)) != -1) {
-                    byte[] newBytes =Util.shortByteArray(bytes,c);
+                while ((c = inputStream.read(bytes)) != -1) {
+                    byte[] newBytes = Util.shortByteArray(bytes, c);
                     Request request = new Request();
                     request.setSocketType(socketType);
                     request.setBytes(newBytes);
@@ -86,7 +97,7 @@ public abstract class ChatContext {
                         e.printStackTrace();
                     }
                 }
-                System.out.println("处理的请求数:"+i);
+                System.out.println("处理的请求数:" + i);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -100,26 +111,93 @@ public abstract class ChatContext {
         threadPool.submit(runnable1);
     }
 
+    //文件断点传输时，发送端获取到接收方已接收的文件长度并从指定的文件长度处发送文件
+    void reciveAndSendRandomFile(File file, Socket socket, Request request) {
+        Runnable runnable1 = () -> {
+            try {
+                //获取接受者接收的文件长度
+                long recivedFileLength = request.getRecivedFileLength();
+                // 打开一个随机访问文件流，按读写方式
+                RandomAccessFile randomFile = new RandomAccessFile(file.getAbsoluteFile() + "/" + request.getFileName(), "rw");
+                randomFile.seek(recivedFileLength);
+                //将文件发出
+                byte[] bytes = new byte[Constant.FILE_BUFFER_SIZE];
+                int c = randomFile.read(bytes);
+                byte[] newBytes = Util.shortByteArray(bytes, c);
+                Request request1 = new Request();
+                request1.setBytes(newBytes);
+                request1.setFileName(file.getName());
+                request1.setTotalFileLength(file.length());
+                request1.setSocketType(Constant.SocketType.RECIVE_FILE.getType());
+                String requestJson = JSONObject.toJSONString(request1);
+                System.out.println("发送的断点文件:" + requestJson);
+                sendMessage(requestJson, socket);
+                randomFile.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
+        threadPool.submit(runnable1);
+    }
+
+
     //接收文件
-    void handleReciveFile(Request request,String savePosition) throws IOException {
+    void handleReciveFile(Request request, String tempSavePosition,String savePosition,Socket socket) throws IOException {
         byte[] bytes = request.getBytes();
-        //写入文件
-        File file = new File(savePosition);
-        if (!file.exists()) {
-            if (!file.mkdir()) {
-                System.out.println("文件夹创建失败");
+
+        File tempFileDir = new File(tempSavePosition);
+        if (!tempFileDir.exists()) {
+            if (!tempFileDir.mkdir()) {
+                System.out.println("临时文件夹创建失败");
                 return;
             }
         }
+
+        File saveFileDir = new File(savePosition);
+        if (!saveFileDir.exists()) {
+            if (!saveFileDir.mkdir()) {
+                System.out.println("保存文件夹创建失败");
+                return;
+            }
+        }
+
         String filename = request.getFileName();
         // 打开一个随机访问文件流，按读写方式
-        RandomAccessFile randomFile = new RandomAccessFile(file.getAbsoluteFile() + "/" + filename, "rw");
+        RandomAccessFile randomFile = new RandomAccessFile(tempFileDir.getAbsoluteFile() + "/" + filename, "rw");
         // 文件长度，字节数
         long fileLength = randomFile.length();
         //将写文件指针移到文件尾。在该位置发生下一个读取或写入操作。
         randomFile.seek(fileLength);
         //按字节序列将该字符串写入该文件。
         randomFile.write(bytes);
+        long tempFileLength = randomFile.length();
         randomFile.close();
+
+        //如果文件传输完毕，生成主文件，删除临时文件
+        if (tempFileLength == request.getTotalFileLength()) {
+            File tempFile = new File(tempSavePosition+ "/" + filename);
+            File saveFile = new File(savePosition+ "/" + filename);
+            copyFile(tempFile,saveFile);
+            tempFile.delete();
+        }else {
+            //如果文件没有传输完毕，向发送方发送已接收的文件长度
+            Request request1 = new Request();
+            request1.setSocketType(Constant.SocketType.RECIVE_SENDED_FILE_LENGTH.getType());
+            request1.setFileName(request.getFileName());
+            request1.setRecivedFileLength(tempFileLength);
+            String requestJson = JSON.toJSONString(request1);
+            sendMessage(requestJson,socket);
+        }
+    }
+
+    //将一个文件写入另一个文件
+    private void copyFile(File srcFile, File posFile) throws IOException {
+        InputStream inputStream = new FileInputStream(srcFile);
+        OutputStream outputStream = new FileOutputStream(posFile);
+        byte[] bytes = new byte[Constant.MOVE_FILE_BUFFER_SIZE];
+        int c;
+        while ((c = inputStream.read(bytes)) != -1) {
+            outputStream.write(bytes, 0, c);
+        }
     }
 }
