@@ -12,6 +12,8 @@ class Constant {
     //移动文件用的缓冲区的大小
     static final int MOVE_FILE_BUFFER_SIZE = 4*1024*1024;//4M
 
+
+
     //服务器端口
     static final int PORT = 6666;
 

@@ -8,7 +8,8 @@ class ClientConstant {
     static String FILE_SAVE_PALCE = "D:/file";
     //临时文件的保存位置
     static String TEMP_FILE_SAVE_PALCE = "D:/tempfile";
-
+    //未完成文件map的保存位置
+    static String  IN_COMPLETE_FILE_MAP_SAVE_PALCE = "D:/incompletemapfile";
     //客户端接收的socket类型
     public enum ClientSocketType {
 

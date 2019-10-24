@@ -1,14 +1,18 @@
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONReader;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Client extends ChatContext {
     //由服务器生成的客户端的名字
     private String name;
+
 
 
     public static void main(String[] args) throws IOException {
@@ -37,6 +41,22 @@ public class Client extends ChatContext {
 //        sendMessageToAll(socket);
 
     }
+
+
+    //加载未完成的文件的map
+    private void loadInCompleteFile() throws IOException {
+        File file = new File(ClientConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE);
+        InputStream inputStream = new FileInputStream(file);
+        byte[] bytes = new byte[Integer.parseInt(String.valueOf(file.length()))];
+        inputStream.read(bytes);
+        String s = new String(bytes);
+        System.out.println("加载的用户未完成的文件:"+s);
+
+
+        Map<String,FileAttribute> map = (Map)JSONObject.parse(s);
+
+    }
+
 
     //私聊发送消息
     private void sendMessageToOne(Socket socket, String sendToname) {
@@ -126,7 +146,7 @@ public class Client extends ChatContext {
 //            }
 
             if(Constant.SocketType.RECIVE_SENDED_FILE_LENGTH_AND_SEND_FILE.getType().equals(request.getSocketType())){
-                reciveAndSendRandomFile(socket,request);
+                reciveAndSendRandomFile(socket,request,ClientConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE);
             }
         }
 

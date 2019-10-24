@@ -55,8 +55,8 @@ class Util {
 
     //取得文件的过期时间
     static Date getFileExpireTime() {
-        long currentTime = System.currentTimeMillis() + ServerConstant.FILE_EXPIRE_TIME;
-        return new Date(currentTime);
+        long expireTime = System.currentTimeMillis() + ServerConstant.FILE_EXPIRE_TIME;
+        return new Date(expireTime);
     }
 
     //判断文件是否过期

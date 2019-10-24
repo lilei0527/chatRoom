@@ -16,6 +16,9 @@ public class Server extends ChatContext {
     private Map<String, List<String>> offLineMessageMap = new HashMap<>();
     //存储用户的离线文件 <接受者名字，<文件名，过期时间>>
     private Map<String, Map<String, Date>> offLineFileMap = new HashMap<>();
+    //服务器存储的不完整的文件集合
+    Map<String,List<FileAttribute>>notCompletedFileMap = new HashMap<>();
+
     //用户人数
     private int PEOPLESUM;
 
@@ -90,7 +93,7 @@ public class Server extends ChatContext {
 //            }
 
             if (Constant.SocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
-                handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE,socket);
+                handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE,ServerConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE,socket);
             }
         }
     }
@@ -133,17 +136,6 @@ public class Server extends ChatContext {
         sendMessage(requestJson, socket);
     }
 
-//    //发送文件
-//    private void handleSendFile(Request request) throws IOException {
-//        //封装消息类型
-//        Request requestToClient = new Request();
-//        requestToClient.setBytes(request.getBytes());
-//        requestToClient.setSendName(request.getSendName());
-//        requestToClient.setSocketType(Constant.SocketType.RECIVE_FILE.getType());
-//        requestToClient.setFileName(request.getFileName());
-//        requestToClient.setName(request.getName());
-//        handleFile(requestToClient);
-//    }
 
     //给上线的人发送消息
     private void sendMessageToOfflineRecoveOnline() {

@@ -21,6 +21,8 @@ class ServerConstant {
     static String TEMP_FILE_SAVE_PALCE = "D:/servertempfile";
 
 
+
+
     //服务器接收的socket类型
     public enum ServerSocketType {
         //关闭socket
