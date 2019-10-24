@@ -1,7 +1,4 @@
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONReader;
+import com.alibaba.fastjson.*;
 
 import java.io.*;
 import java.net.Socket;
@@ -14,7 +11,6 @@ public class Client extends ChatContext {
     private String name;
 
 
-
     public static void main(String[] args) throws IOException {
         new Client();
     }
@@ -25,14 +21,15 @@ public class Client extends ChatContext {
 
     @Override
     public void init() throws IOException {
+        loadInCompleteFile();
         Socket socket = new Socket(Constant.ADDRESS, Constant.PORT);
         //接受服务器消息
         reciveSocket(socket);
-        File file = new File("D:/1.jpg");
+        File file = new File("D:/tiger.jpg");
 //        File file1 = new File("D:/1.txt");
 //        File file2 = new File("D:/Postman-win64-7.0.6-Setup.exe");
 //        发送文件
-        sendRandomFile(file,0,socket);
+        sendRandomFile(file, 0, socket);
 //        sendFile(file, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
 //        sendFile(file1, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
 //        sendFile(file2,"people0",socket);
@@ -45,16 +42,29 @@ public class Client extends ChatContext {
 
     //加载未完成的文件的map
     private void loadInCompleteFile() throws IOException {
-        File file = new File(ClientConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE);
-        InputStream inputStream = new FileInputStream(file);
-        byte[] bytes = new byte[Integer.parseInt(String.valueOf(file.length()))];
-        inputStream.read(bytes);
-        String s = new String(bytes);
-        System.out.println("加载的用户未完成的文件:"+s);
-
-
-        Map<String,FileAttribute> map = (Map)JSONObject.parse(s);
-
+        File fileDir = new File(ClientConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE);
+        if(!fileDir.exists()){
+            if(!fileDir.mkdir()){
+                System.out.println("未完成文件Map加载失败");
+                return;
+            }
+        }
+        File saveFile = new File(ClientConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE+"/"+ClientConstant.IN_COMPLETE_FILE_MAP_NAME);
+        if(!saveFile.exists()){
+            if(!saveFile.createNewFile()){
+                System.out.println("存储为传输完毕文件的文件创建失败");
+                return;
+            }
+        }
+        InputStream inputStream = new FileInputStream(saveFile);
+        byte[] bytes = new byte[Integer.parseInt(String.valueOf(saveFile.length()))];
+        int i = inputStream.read(bytes);
+        if (i > 0) {
+            String s = new String(bytes);
+            System.out.println("加载的用户未完成的文件:" + s);
+            Map map = JSON.parseObject(s, Map.class);
+            inCompleteFileMap.putAll(map);
+        }
     }
 
 
@@ -115,8 +125,8 @@ public class Client extends ChatContext {
             while (true) {
                 try {
                     List<String> list = reciveMessage(socket);
-                    handleServerRequest(list,socket);
-                    System.out.println("处理请求数:"+list.size());
+                    handleServerRequest(list, socket);
+                    System.out.println("处理请求数:" + list.size());
                 } catch (IOException e) {
                     return;
                 }
@@ -126,12 +136,12 @@ public class Client extends ChatContext {
     }
 
     //对不同的服务端消息做出不同的响应
-    private void handleServerRequest(List<String> requestString,Socket socket) throws IOException {
+    private void handleServerRequest(List<String> requestString, Socket socket) throws IOException {
         for (String aRequestString : requestString) {
             if (aRequestString == null) {
                 break;
             }
-            System.out.println("提取的消息为:"+aRequestString);
+            System.out.println("提取的消息为:" + aRequestString);
             Request request = JSON.parseObject(aRequestString, Request.class);
             if (ClientConstant.ClientSocketType.CHAT_WITH_CLIENT.getType().equals(request.getSocketType())) {
                 handleChatWithClientRequest(request);
@@ -145,8 +155,8 @@ public class Client extends ChatContext {
 //                handleReciveFile(request,ClientConstant.TEMP_FILE_SAVE_PALCE,ClientConstant.FILE_SAVE_PALCE,socket);
 //            }
 
-            if(Constant.SocketType.RECIVE_SENDED_FILE_LENGTH_AND_SEND_FILE.getType().equals(request.getSocketType())){
-                reciveAndSendRandomFile(socket,request,ClientConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE);
+            if (Constant.SocketType.RECIVE_SENDED_FILE_LENGTH_AND_SEND_FILE.getType().equals(request.getSocketType())) {
+                reciveAndSendRandomFile(socket, request, ClientConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE);
             }
         }
 

@@ -93,7 +93,7 @@ public class Server extends ChatContext {
 //            }
 
             if (Constant.SocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
-                handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE,ServerConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE,socket);
+                handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE,socket);
             }
         }
     }

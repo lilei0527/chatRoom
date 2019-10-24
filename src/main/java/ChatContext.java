@@ -75,12 +75,13 @@ public abstract class ChatContext {
                 long recivedFileLength = request.getRecivedFileLength();
                 if (recivedFileLength < file.length()) {
                     //文件未传输完成
-                    sendRandomFile(file, recivedFileLength, socket);
                     FileAttribute fileAttribute = new FileAttribute();
                     fileAttribute.setExpireDate(Util.getFileExpireTime());
                     fileAttribute.setLength(recivedFileLength);
                     fileAttribute.setPath(request.getSrcPath());
                     inCompleteFileMap.put(request.getFileName(), fileAttribute);
+
+                    sendRandomFile(file, recivedFileLength, socket);
                 } else {
                     inCompleteFileMap.remove(request.getFileName());
                 }
@@ -120,7 +121,7 @@ public abstract class ChatContext {
 
 
     //接收文件
-    void handleReciveFile(Request request, String tempSavePosition, String savePosition, String inCompleteFileMapSavePosition, Socket socket) throws IOException {
+    void handleReciveFile(Request request, String tempSavePosition, String savePosition, Socket socket) throws IOException {
         byte[] bytes = request.getBytes();
         File tempFileDir = new File(tempSavePosition);
         if (!tempFileDir.exists()) {
@@ -196,7 +197,7 @@ public abstract class ChatContext {
     //将内存中的保存成文件
     private void saveToFile(String toSaveString, String savePath) throws IOException {
         byte[] bytes = toSaveString.getBytes();
-        OutputStream outputStream = new FileOutputStream(savePath);
+        OutputStream outputStream = new FileOutputStream(savePath+"/"+ClientConstant.IN_COMPLETE_FILE_MAP_NAME);
         outputStream.write(bytes);
     }
 }
