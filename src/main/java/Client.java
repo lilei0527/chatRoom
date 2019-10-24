@@ -24,12 +24,13 @@ public class Client extends ChatContext {
         Socket socket = new Socket(Constant.ADDRESS, Constant.PORT);
         //接受服务器消息
         reciveSocket(socket);
-        File file = new File("D:/tiger.jpg");
-        File file1 = new File("D:/1.txt");
+        File file = new File("D:/1.jpg");
+//        File file1 = new File("D:/1.txt");
 //        File file2 = new File("D:/Postman-win64-7.0.6-Setup.exe");
 //        发送文件
-        sendFile(file, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
-        sendFile(file1, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
+        sendRandomFile(file,0,socket);
+//        sendFile(file, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
+//        sendFile(file1, "people1", socket,ServerConstant.ServerSocketType.SEND_FILE.getType());
 //        sendFile(file2,"people0",socket);
 //        sendMessageToOne(socket,"people1");
 //
@@ -120,15 +121,13 @@ public class Client extends ChatContext {
                 handleGiveNameRequest(request);
             }
 
-            if (Constant.SocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
-                handleReciveFile(request,ClientConstant.TEMP_FILE_SAVE_PALCE,ClientConstant.FILE_SAVE_PALCE,socket);
+//            if (Constant.SocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
+//                handleReciveFile(request,ClientConstant.TEMP_FILE_SAVE_PALCE,ClientConstant.FILE_SAVE_PALCE,socket);
+//            }
+
+            if(Constant.SocketType.RECIVE_SENDED_FILE_LENGTH_AND_SEND_FILE.getType().equals(request.getSocketType())){
+                reciveAndSendRandomFile(socket,request);
             }
-
-            if(Constant.SocketType.RECIVE_SENDED_FILE_LENGTH.getType().equals(request.getSocketType())){
-                reciveAndSendRandomFile();
-            }
-
-
         }
 
     }

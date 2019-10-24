@@ -21,7 +21,7 @@ public class Server extends ChatContext {
 
     private Server() throws IOException {
         sendMessageToOfflineRecoveOnline();
-        sendFileToOfflineRecoveOnline();
+//        sendFileToOfflineRecoveOnline();
         deleteExpireFile();
         while (true) {
             try {
@@ -85,31 +85,16 @@ public class Server extends ChatContext {
                 handleCloseRequest(socket);
             }
 
-            if (ServerConstant.ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())) {
-                handleSendFile(request);
-            }
-
-//            if (Constant.SocketType.RECIVE_FILE_TOTOL_LENGTH_AND_FILE_NAME.getType().equals(request.getSocketType())) {
-//                handleReciveFile(request,ServerConstant.TEMP_FILE_SAVE_PALCE,ServerConstant.Save);
+//            if (ServerConstant.ServerSocketType.SEND_FILE.getType().equals(request.getSocketType())) {
+//                handleSendFile(request);
 //            }
+
+            if (Constant.SocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
+                handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE,socket);
+            }
         }
     }
 
-
-    //处理文件总长和文件名的转发请求
-    private void handleFileTotalLengthAndFileNameRequest(Request request) throws IOException {
-        Request request1 = new Request();
-        request1.setTotalFileLength(request.getTotalFileLength());
-        request1.setFileName(request.getFileName());
-        request1.setSocketType(Constant.SocketType.RECIVE_FILE_TOTOL_LENGTH_AND_FILE_NAME.getType());
-        request1.setSendName(request.getSendName());
-        String requestJson = JSON.toJSONString(request1);
-        boolean isOnline = sendRequestToOnline(request.getName(),requestJson);
-
-        if(!isOnline){
-            //用户没上线，服务端生成临时文件
-        }
-    }
 
     //处理群聊请求
     private void handleAllChatRequest(Request request) {
@@ -148,17 +133,17 @@ public class Server extends ChatContext {
         sendMessage(requestJson, socket);
     }
 
-    //发送文件
-    private void handleSendFile(Request request) throws IOException {
-        //封装消息类型
-        Request requestToClient = new Request();
-        requestToClient.setBytes(request.getBytes());
-        requestToClient.setSendName(request.getSendName());
-        requestToClient.setSocketType(Constant.SocketType.RECIVE_FILE.getType());
-        requestToClient.setFileName(request.getFileName());
-        requestToClient.setName(request.getName());
-        handleFile(requestToClient);
-    }
+//    //发送文件
+//    private void handleSendFile(Request request) throws IOException {
+//        //封装消息类型
+//        Request requestToClient = new Request();
+//        requestToClient.setBytes(request.getBytes());
+//        requestToClient.setSendName(request.getSendName());
+//        requestToClient.setSocketType(Constant.SocketType.RECIVE_FILE.getType());
+//        requestToClient.setFileName(request.getFileName());
+//        requestToClient.setName(request.getName());
+//        handleFile(requestToClient);
+//    }
 
     //给上线的人发送消息
     private void sendMessageToOfflineRecoveOnline() {
@@ -187,42 +172,42 @@ public class Server extends ChatContext {
         timer.scheduleAtFixedRate(task, delay, PeriodTime);
     }
 
-    //给上线的人发送文件
-    private void sendFileToOfflineRecoveOnline() {
-        TimerTask task = new TimerTask() { //创建一个新的timer task
-            public void run() { //定时器任务执行的操作
-                for (Map.Entry<String, Map<String, Date>> offLineFileEntry : offLineFileMap.entrySet()) {
-                    for (Map.Entry<String, Socket> stringSocketEntry : stringSocketMap.entrySet()) {
-                        if (offLineFileEntry.getKey().equals(stringSocketEntry.getKey())) {
-                            //如果用户上线
-                            for (Map.Entry<String, Date> fileEntry : offLineFileEntry.getValue().entrySet()) {
-                                //发送所有的离线文件给上线用户
-                                try {
-                                    File file = new File(ServerConstant.OFFLINE_FILE_SAVE_PALCE + "/" + fileEntry.getKey());
-                                    if (!Util.isFileExpire(fileEntry.getValue())) {
-                                        sendFile(file, "", stringSocketEntry.getValue(), Constant.SocketType.RECIVE_FILE.getType());
-                                    } else {
-                                        System.out.println("文件已过期");
-                                    }
-                                } catch (IOException e) {
-                                    System.out.println("IOException");
-                                }
-                            }
-                            //发送完毕后离线文件map去掉这个文件
-                            offLineFileMap.remove(offLineFileEntry.getKey());
-                        }
-                    }
-                }
-            }
-        };
-        Timer timer = new Timer();//创建一个定时器
-        long delay = 0;
-        long PeriodTime = ServerConstant.CHECK_ONLINE_TIME_PERIOD;
-        timer.scheduleAtFixedRate(task, delay, PeriodTime);
-    }
+//    //给上线的人发送文件
+//    private void sendFileToOfflineRecoveOnline() {
+//        TimerTask task = new TimerTask() { //创建一个新的timer task
+//            public void run() { //定时器任务执行的操作
+//                for (Map.Entry<String, Map<String, Date>> offLineFileEntry : offLineFileMap.entrySet()) {
+//                    for (Map.Entry<String, Socket> stringSocketEntry : stringSocketMap.entrySet()) {
+//                        if (offLineFileEntry.getKey().equals(stringSocketEntry.getKey())) {
+//                            //如果用户上线
+//                            for (Map.Entry<String, Date> fileEntry : offLineFileEntry.getValue().entrySet()) {
+//                                //发送所有的离线文件给上线用户
+//                                try {
+//                                    File file = new File(ServerConstant.OFFLINE_FILE_SAVE_PALCE + "/" + fileEntry.getKey());
+//                                    if (!Util.isFileExpire(fileEntry.getValue())) {
+//                                        sendFile(file, "", stringSocketEntry.getValue(), Constant.SocketType.RECIVE_FILE.getType());
+//                                    } else {
+//                                        System.out.println("文件已过期");
+//                                    }
+//                                } catch (IOException e) {
+//                                    System.out.println("IOException");
+//                                }
+//                            }
+//                            //发送完毕后离线文件map去掉这个文件
+//                            offLineFileMap.remove(offLineFileEntry.getKey());
+//                        }
+//                    }
+//                }
+//            }
+//        };
+//        Timer timer = new Timer();//创建一个定时器
+//        long delay = 0;
+//        long PeriodTime = ServerConstant.CHECK_ONLINE_TIME_PERIOD;
+//        timer.scheduleAtFixedRate(task, delay, PeriodTime);
+//    }
 
     //给在线的人发送消息 name发送的人的名称
-    private boolean sendRequestToOnline(String name,String requestString) throws IOException {
+    private boolean sendRequestToOnline(String name, String requestString) throws IOException {
         boolean isOnline = false;
         for (Map.Entry<String, Socket> entry : stringSocketMap.entrySet()) {
             if (name.equals(entry.getKey())) {
@@ -237,7 +222,7 @@ public class Server extends ChatContext {
 
     //将离线文字消息添加到map，name是接收人的名字
     private void handleMessage(String message, String name) throws IOException {
-        boolean isOnline = sendRequestToOnline(name,message);
+        boolean isOnline = sendRequestToOnline(name, message);
         //如果用户不在线
         if (!isOnline) {
             List<String> messageList = new ArrayList<>();
@@ -267,31 +252,31 @@ public class Server extends ChatContext {
 
 
     //将离线文件消息存储到文件，name是接收人的名字
-    private void handleFile(Request request) throws IOException {
-        System.out.println(stringSocketMap.toString());
-        System.out.println("消息：" + request.toString());
-        String name = request.getName();
-        String message = JSON.toJSONString(request);
-        boolean isOnline = sendRequestToOnline(name,message);
-        System.out.println(isOnline);
-        if (!isOnline) {
-            System.out.println("用户离线，保存文件");
-            //保存离线文件
-            handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE,ServerConstant.OFFLINE_FILE_SAVE_PALCE);
-            //已存在的离线文件
-            Map<String, Date> exsitFileMap = offLineFileMap.get(name);
-            //将文件名添加到map
-            Map<String, Date> fileMap = new HashMap<>();
-            fileMap.put(request.getFileName(), Util.getFileExpireTime());
-            //将现在的离线文件和之前的离线文件添加到一起
-            if (exsitFileMap != null) {
-                fileMap.putAll(exsitFileMap);
-            }
-            //存储离线消息
-            offLineFileMap.put(name, fileMap);
-            System.out.println(offLineFileMap.toString());
-        }
-    }
+//    private void handleFile(Request request) throws IOException {
+//        System.out.println(stringSocketMap.toString());
+//        System.out.println("消息：" + request.toString());
+//        String name = request.getName();
+//        String message = JSON.toJSONString(request);
+//        boolean isOnline = sendRequestToOnline(name, message);
+//        System.out.println(isOnline);
+//        if (!isOnline) {
+//            System.out.println("用户离线，保存文件");
+//            //保存离线文件
+//            handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE);
+//            //已存在的离线文件
+//            Map<String, Date> exsitFileMap = offLineFileMap.get(name);
+//            //将文件名添加到map
+//            Map<String, Date> fileMap = new HashMap<>();
+//            fileMap.put(request.getFileName(), Util.getFileExpireTime());
+//            //将现在的离线文件和之前的离线文件添加到一起
+//            if (exsitFileMap != null) {
+//                fileMap.putAll(exsitFileMap);
+//            }
+//            //存储离线消息
+//            offLineFileMap.put(name, fileMap);
+//            System.out.println(offLineFileMap.toString());
+//        }
+//    }
 
     //定期删除过期的用户离线文件
     private void deleteExpireFile() {
@@ -299,11 +284,11 @@ public class Server extends ChatContext {
             public void run() { //定时器任务执行的操作
                 System.out.println("检查有无过期的消息");
                 Iterator<Map.Entry<String, Map<String, Date>>> offLineFileIterator = offLineFileMap.entrySet().iterator();
-                while (offLineFileIterator.hasNext()){
-                    Map.Entry<String, Map<String, Date>> offLineFileEntry= offLineFileIterator.next();
+                while (offLineFileIterator.hasNext()) {
+                    Map.Entry<String, Map<String, Date>> offLineFileEntry = offLineFileIterator.next();
                     System.out.println(offLineFileEntry.toString());
                     Iterator<Map.Entry<String, Date>> fileIterator = offLineFileEntry.getValue().entrySet().iterator();
-                    while(fileIterator.hasNext()){
+                    while (fileIterator.hasNext()) {
                         Map.Entry<String, Date> fileEntry = fileIterator.next();
                         System.out.println(fileEntry.toString());
                         if (Util.isFileExpire(fileEntry.getValue())) {
@@ -312,15 +297,15 @@ public class Server extends ChatContext {
                                 file.delete();
                                 //移除内存中文件的引用
                                 fileIterator.remove();
-                                System.out.println("移除"+fileEntry.getKey());
+                                System.out.println("移除" + fileEntry.getKey());
                             }
                         }
                     }
 
-                    if(offLineFileEntry.getValue().size()==0){
+                    if (offLineFileEntry.getValue().size() == 0) {
                         //所有文件都发送完毕
                         offLineFileIterator.remove();
-                        System.out.println("移除"+offLineFileEntry.getKey());
+                        System.out.println("移除" + offLineFileEntry.getKey());
                     }
                 }
             }

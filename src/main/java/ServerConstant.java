@@ -15,9 +15,9 @@ class ServerConstant {
     static final int DELETE_EXPIRE_FILE_PERIOD = 10*1000;//十秒
 
     //离线文件的存储位置
-    static String OFFLINE_FILE_SAVE_PALCE = "D:/offlinefile";
+    static String OFFLINE_FILE_SAVE_PALCE = "D:/serverofflinefile";
 
-    //临时文件的保存位置
+    //临时离线文件的保存位置
     static String TEMP_FILE_SAVE_PALCE = "D:/servertempfile";
 
 

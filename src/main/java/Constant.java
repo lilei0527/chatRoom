@@ -23,9 +23,8 @@ class Constant {
 
         RECIVE_FILE("reciveFile"),
 
-        RECIVE_SENDED_FILE_LENGTH("reciveSendedFileLength"),
+        RECIVE_SENDED_FILE_LENGTH_AND_SEND_FILE("reciveSendedFileLengthAndSendFile");
 
-        RECIVE_FILE_TOTOL_LENGTH_AND_FILE_NAME("reciveFileTotolLengthAndFileName");
 
         private final String type;
 

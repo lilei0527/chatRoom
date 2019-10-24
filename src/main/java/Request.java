@@ -2,7 +2,7 @@ import java.util.Arrays;
 
 class Request {
     //请求的类型
-     private String socketType;
+    private String socketType;
     //接受信息的人的名字
     private String name;
     //要发送的信息
@@ -13,6 +13,8 @@ class Request {
       private byte[] bytes;
     //文件名
     private String fileName;
+    //文件的源路径
+    private String srcPath;
     //文件总种长度
     private long totalFileLength;
     //已接收的文件长度
@@ -21,6 +23,14 @@ class Request {
 
     Request() {
 
+    }
+
+    public String getSrcPath() {
+        return srcPath;
+    }
+
+    public void setSrcPath(String srcPath) {
+        this.srcPath = srcPath;
     }
 
     public long getTotalFileLength() {
