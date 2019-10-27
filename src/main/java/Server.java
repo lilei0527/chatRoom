@@ -1,8 +1,7 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -16,20 +15,18 @@ public class Server extends ChatContext {
     private Map<String, List<String>> offLineMessageMap = new HashMap<>();
     //存储用户的离线文件 <接受者名字，<文件名，过期时间>>
     private Map<String, Map<String, Date>> offLineFileMap = new HashMap<>();
-    //服务器存储的不完整的文件集合
-    Map<String,List<FileAttribute>>notCompletedFileMap = new HashMap<>();
+    //用户的用户名密码
+    private Map<String, String> registerMap = new HashMap<>();
 
-    //用户人数
-    private int PEOPLESUM;
 
     private Server() throws IOException {
+        loadRegisterInfo();
         sendMessageToOfflineRecoveOnline();
 //        sendFileToOfflineRecoveOnline();
         deleteExpireFile();
         while (true) {
             try {
                 init();
-                PEOPLESUM++;
             } catch (IOException e) {
                 break;
             }
@@ -43,11 +40,11 @@ public class Server extends ChatContext {
 
     //初始聊天服务器
     public void init() throws IOException {
+
         Socket socket = serverSocket.accept();
         System.out.println(socket.getRemoteSocketAddress() + "已连接");
-        String name = "people" + PEOPLESUM;
-        stringSocketMap.put(name, socket);
-        sendNameToClient(name, socket);
+//        String name = "people" + PEOPLESUM;
+//        stringSocketMap.put(name, socket);
         reciveSocket(socket);
     }
 
@@ -61,6 +58,8 @@ public class Server extends ChatContext {
                 } catch (IOException e) {
                     System.out.println("IO异常");
                     return;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         };
@@ -68,7 +67,7 @@ public class Server extends ChatContext {
     }
 
     //对不同的客户端消息做出不同的响应
-    private void handleClientRequest(List<String> requestString, Socket socket) throws IOException {
+    private void handleClientRequest(List<String> requestString, Socket socket) throws Exception {
         for (String aRequestString : requestString) {
             if (aRequestString == null) {
                 break;
@@ -93,7 +92,11 @@ public class Server extends ChatContext {
 //            }
 
             if (Constant.SocketType.RECIVE_FILE.getType().equals(request.getSocketType())) {
-                handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE,socket);
+                handleReciveFile(request, ServerConstant.TEMP_FILE_SAVE_PALCE, ServerConstant.OFFLINE_FILE_SAVE_PALCE, ServerConstant.IN_COMPLETE_FILE_MAP_SAVE_PALCE, socket);
+            }
+
+            if (ServerConstant.ServerSocketType.LOGIN.getType().equals(request.getSocketType())) {
+                handleLoginRequest(request, socket);
             }
         }
     }
@@ -101,7 +104,7 @@ public class Server extends ChatContext {
 
     //处理群聊请求
     private void handleAllChatRequest(Request request) {
-        System.out.println(request.getSendName() + ":" + request.getMessage());
+        System.out.println(request.getUsername() + ":" + request.getMessage());
     }
 
 
@@ -111,7 +114,7 @@ public class Server extends ChatContext {
             //封装消息类型
             Request requestToClient = new Request();
             requestToClient.setMessage(request.getMessage());
-            requestToClient.setSendName(request.getSendName());
+            requestToClient.setUsername(request.getUsername());
             requestToClient.setSocketType(ClientConstant.ClientSocketType.CHAT_WITH_CLIENT.getType());
             String requestJson = JSONObject.toJSONString(requestToClient);
             handleMessage(requestJson, request.getName());
@@ -131,6 +134,7 @@ public class Server extends ChatContext {
         //封装消息类型
         Request request = new Request();
         request.setMessage(name);
+        request.setLogin(true);
         request.setSocketType(ClientConstant.ClientSocketType.GIVE_NAME.getType());
         String requestJson = JSONObject.toJSONString(request);
         sendMessage(requestJson, socket);
@@ -286,10 +290,13 @@ public class Server extends ChatContext {
                         if (Util.isFileExpire(fileEntry.getValue())) {
                             File file = new File(ServerConstant.OFFLINE_FILE_SAVE_PALCE + "/" + fileEntry.getKey());
                             if (file.exists()) {
-                                file.delete();
-                                //移除内存中文件的引用
-                                fileIterator.remove();
-                                System.out.println("移除" + fileEntry.getKey());
+                                if (file.delete()) {
+                                    //移除内存中文件的引用
+                                    fileIterator.remove();
+                                    System.out.println("移除" + fileEntry.getKey());
+                                } else {
+                                    System.out.println(file.getName() + "文件删除失败");
+                                }
                             }
                         }
                     }
@@ -308,5 +315,68 @@ public class Server extends ChatContext {
         timer.scheduleAtFixedRate(task, delay, PeriodTime);
     }
 
+    long handleReciveFile(Request request, String tempSavePosition, String savePosition, String inCompleteFileMapSavePosition, Socket socket) throws Exception {
+        long tempFileLength = super.handleReciveFile(request, tempSavePosition, savePosition, inCompleteFileMapSavePosition, socket);
+
+        if (tempFileLength == getFileTotalLength(request)) {
+            File tempFile = new File(tempSavePosition + "/" + request.getFileName());
+            File saveFile = new File(savePosition + "/" + request.getFileName());
+            copyFile(tempFile, saveFile);
+            boolean delete = tempFile.delete();
+            if (!delete) {
+                throw new Exception();
+            }
+        }
+        return tempFileLength;
+    }
+
+    //处理注册请求
+    private void handleRegisterRequest(Request request, Socket socket) {
+        String username = request.getUsername();
+        String password = request.getPassword();
+
+    }
+
+
+    //加载用户注册文件
+    private void loadRegisterInfo() throws IOException {
+        InputStream inputStream = new FileInputStream(ServerConstant.REGISTER_INFO_SAVE_PLACE + ServerConstant.REGISTER_INFO_NAME);
+        StringBuilder stringBuilder = new StringBuilder();
+        byte[] bytes = new byte[Constant.LOAD_REGISTER_INFO_BUFFER_SIZE];
+        int c;
+        while ((c = inputStream.read(bytes)) != -1) {
+            byte[] shorBytes = Util.shortByteArray(bytes, c);
+            String s = new String(shorBytes);
+            stringBuilder.append(s);
+        }
+        String registerJson = stringBuilder.toString();
+        Map map = JSON.parseObject(registerJson, Map.class);
+        registerMap.putAll(map);
+    }
+
+    //处理登录请求
+    private void handleLoginRequest(Request request, Socket socket) throws IOException {
+        System.out.println(request);
+        boolean isLogin = false;
+        System.out.println(registerMap);
+        for (Map.Entry<String, String> registerEntry : registerMap.entrySet()) {
+            System.out.println(registerEntry.getKey()+","+registerEntry.getValue());
+            System.out.println(request.getUsername()+","+request.getPassword());
+            if (registerEntry.getKey().equals(request.getUsername()) && registerEntry.getValue().equals(request.getPassword())) {
+                //登录成功
+                sendNameToClient(request.getUsername(), socket);
+                stringSocketMap.put(request.getUsername(), socket);
+                isLogin = true;
+                break;
+            }
+        }
+        if(!isLogin){
+            Request request1 = new Request();
+            request1.setLogin(false);
+            request1.setSocketType(ClientConstant.ClientSocketType.GIVE_NAME.getType());
+            String requestJson = JSONObject.toJSONString(request1);
+            sendMessage(requestJson, socket);
+        }
+    }
 }
 

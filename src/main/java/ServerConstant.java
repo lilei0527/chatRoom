@@ -14,12 +14,25 @@ class ServerConstant {
     //删除过期离线文件的时间间隔
     static final int DELETE_EXPIRE_FILE_PERIOD = 10*1000;//十秒
 
+    private static final String ROOT_PATH = "/server";
+
     //离线文件的存储位置
-    static String OFFLINE_FILE_SAVE_PALCE = "D:/serverofflinefile";
+    static String OFFLINE_FILE_SAVE_PALCE = Constant.ROOT_PATH+ServerConstant.ROOT_PATH+"/offlinefile";
 
     //临时离线文件的保存位置
-    static String TEMP_FILE_SAVE_PALCE = "D:/servertempfile";
+    static String TEMP_FILE_SAVE_PALCE = Constant.ROOT_PATH+ServerConstant.ROOT_PATH+"/tempfile";
 
+    //未完成文件map的保存位置
+    static String  IN_COMPLETE_FILE_MAP_SAVE_PALCE = Constant.ROOT_PATH+ServerConstant.ROOT_PATH+"/incompletemapfile";
+
+    //未完成文件的文件名
+    static String IN_COMPLETE_FILE_MAP_NAME = "inComplete_file.txt";
+
+    //保存注册信息的文件位置
+    static String REGISTER_INFO_SAVE_PLACE = Constant.ROOT_PATH+ServerConstant.ROOT_PATH+"/register";
+
+    //保存注册信息的文件名
+    static String REGISTER_INFO_NAME = "/register.txt";
 
 
 
@@ -35,7 +48,13 @@ class ServerConstant {
         CHAT_TO_ALL("chatToAll"),
 
         //发送文件
-        SEND_FILE("sendFile");
+        SEND_FILE("sendFile"),
+
+        //注册
+        REGISTER("register"),
+
+        //登录
+        LOGIN("login");
 
 
         private final String Type;

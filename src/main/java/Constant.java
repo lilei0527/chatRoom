@@ -12,6 +12,12 @@ class Constant {
     //移动文件用的缓冲区的大小
     static final int MOVE_FILE_BUFFER_SIZE = 4*1024*1024;//4M
 
+    //加载用户注册文件用到的缓冲区的大小
+    static final int LOAD_REGISTER_INFO_BUFFER_SIZE = 4*1024;//4K
+
+    //各个子路径的根路径
+    static final String ROOT_PATH = "D:/chatRoom/file";
+
 
 
     //服务器端口

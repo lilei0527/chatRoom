@@ -7,8 +7,7 @@ class Request {
     private String name;
     //要发送的信息
     private String message;
-    //发送信息的人的名字
-    private String sendName;
+
     //发送的二进制流
       private byte[] bytes;
     //文件名
@@ -19,10 +18,51 @@ class Request {
     private long totalFileLength;
     //已接收的文件长度
     private long recivedFileLength;
+    //文件是否传输完成
+    private boolean isCompleted;
+    //用户名
+    private String username;
+    //密码
+    private String password;
+    //是否登录成功
+    private boolean isLogin;
+
 
 
     Request() {
 
+    }
+
+    public boolean isLogin() {
+        return isLogin;
+    }
+
+    public void setLogin(boolean login) {
+        isLogin = login;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String userName) {
+        this.username = userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
     }
 
     public String getSrcPath() {
@@ -47,11 +87,15 @@ class Request {
                 "socketType='" + socketType + '\'' +
                 ", name='" + name + '\'' +
                 ", message='" + message + '\'' +
-                ", sendName='" + sendName + '\'' +
                 ", bytes=" + Arrays.toString(bytes) +
                 ", fileName='" + fileName + '\'' +
+                ", srcPath='" + srcPath + '\'' +
                 ", totalFileLength=" + totalFileLength +
                 ", recivedFileLength=" + recivedFileLength +
+                ", isCompleted=" + isCompleted +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", isLogin=" + isLogin +
                 '}';
     }
 
@@ -103,12 +147,6 @@ class Request {
         this.message = message;
     }
 
-    public String getSendName() {
-        return sendName;
-    }
 
-    public void setSendName(String sendName) {
-        this.sendName = sendName;
-    }
 
 }
